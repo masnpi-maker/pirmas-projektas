@@ -1,0 +1,33 @@
+:root {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.45;
+  font-weight: 400;
+  color: #f6f1e6;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #2a2418 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #1a2433 0%, transparent 50%),
+    #0d1016;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}

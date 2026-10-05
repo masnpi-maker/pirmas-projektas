@@ -1,0 +1,432 @@
+.fx {
+  position: relative;
+  isolation: isolate;
+  width: min(1240px, 100%);
+  margin: 0 auto;
+  padding: 48px 20px 64px;
+  display: grid;
+  gap: 28px;
+}
+
+.fx-glow {
+  position: absolute;
+  inset: 40px auto auto 50%;
+  width: 420px;
+  height: 420px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(240, 138, 184, 0.22), transparent 68%);
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(8px);
+}
+
+.fx-header {
+  text-align: left;
+}
+
+.fx-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  align-items: start;
+}
+
+.fx-currency-column {
+  display: grid;
+  gap: 28px;
+  min-width: 0;
+}
+
+.fx-kicker {
+  margin: 0 0 8px;
+  color: #f08ab8;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.fx-header h1 {
+  margin: 0 0 10px;
+  font-size: clamp(32px, 6vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: #fff4fa;
+}
+
+.fx-lead {
+  margin: 0;
+  max-width: 42ch;
+  color: #d9a9bf;
+}
+
+.fx-card,
+.fx-rates {
+  background: linear-gradient(180deg, rgba(70, 31, 52, 0.92), rgba(43, 20, 32, 0.96));
+  border: 1px solid rgba(240, 138, 184, 0.24);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.fx-card {
+  padding: 24px;
+  display: grid;
+  gap: 20px;
+}
+
+.fx-field {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.fx-field label {
+  font-size: 13px;
+  color: #ddb5c8;
+}
+
+.fx-field input,
+.fx-field select {
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #321b28;
+  color: #fff4fa;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font: inherit;
+}
+
+.fx-field input:focus,
+.fx-field select:focus {
+  outline: 2px solid #f08ab8;
+  outline-offset: 2px;
+}
+
+.fx-pair {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: end;
+}
+
+.fx-swap {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: #f08ab8;
+  color: #3a1828;
+  font-size: 22px;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+
+.fx-swap:hover {
+  filter: brightness(1.08);
+}
+
+.fx-result {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(240, 138, 184, 0.10);
+  text-align: left;
+}
+
+.fx-result-label,
+.fx-result-rate {
+  margin: 0;
+  color: #ddb5c8;
+  font-size: 14px;
+}
+
+.fx-result-value {
+  margin: 8px 0 6px;
+  color: #fff4fa;
+  font-size: clamp(28px, 5vw, 40px);
+  letter-spacing: -0.03em;
+  font-weight: 650;
+}
+
+.fx-error {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(220, 80, 80, 0.12);
+  color: #ffb4b4;
+}
+
+.fx-error button,
+.fx-swap:focus-visible,
+.fx-error button:focus-visible {
+  outline: 2px solid #f08ab8;
+  outline-offset: 2px;
+}
+
+.fx-error button {
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #fff4fa;
+  color: #3a1828;
+  cursor: pointer;
+  font: inherit;
+}
+
+.fx-rates {
+  padding: 8px 8px 4px;
+}
+
+.fx-rates-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  padding: 16px 16px 8px;
+}
+
+.fx-rates-head h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #fff4fa;
+}
+
+.fx-rates-head p {
+  margin: 0;
+  font-size: 13px;
+  color: #d9a9bf;
+}
+
+.fx-rates ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fx-rates li {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 16px;
+  color: #fff4fa;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 900px) {
+  .fx-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .fx-pair {
+    grid-template-columns: 1fr;
+  }
+
+  .fx-swap {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+
+  .fx-error {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+
+/* Kriptovaliutos skaičiuoklė – pritaikyta prie esamo dizaino */
+.crypto-card {
+  background: linear-gradient(
+    180deg,
+    rgba(70, 31, 52, 0.92),
+    rgba(43, 20, 32, 0.96)
+  );
+  border: 1px solid rgba(240, 138, 184, 0.24);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.crypto-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.crypto-kicker {
+  margin: 0 0 8px;
+  color: #f08ab8;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.crypto-header h2 {
+  margin: 0 0 8px;
+  color: #fff4fa;
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.crypto-lead {
+  margin: 0;
+  color: #d9a9bf;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.crypto-symbol {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f08ab8;
+  color: #3a1828;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.crypto-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 12px;
+}
+
+.crypto-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.crypto-field label {
+  color: #ddb5c8;
+  font-size: 13px;
+}
+
+.crypto-field input,
+.crypto-field select {
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #321b28;
+  color: #fff4fa;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font: inherit;
+}
+
+.crypto-field input:focus,
+.crypto-field select:focus {
+  outline: 2px solid #f08ab8;
+  outline-offset: 2px;
+}
+
+.crypto-result {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(240, 138, 184, 0.10);
+  text-align: left;
+}
+
+.crypto-result-label {
+  margin: 0;
+  color: #ddb5c8;
+  font-size: 14px;
+}
+
+.crypto-result-value {
+  margin: 8px 0 6px;
+  color: #fff4fa;
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-weight: 650;
+}
+
+.crypto-result-rate {
+  margin: 0;
+  color: #ddb5c8;
+  font-size: 14px;
+}
+
+.crypto-error {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: #ffb4b4;
+}
+
+.crypto-error p {
+  margin: 8px 0 6px;
+}
+
+.crypto-error button {
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #fff4fa;
+  color: #3a1828;
+  cursor: pointer;
+  font: inherit;
+}
+
+.crypto-error button:hover {
+  filter: brightness(1.05);
+}
+
+.crypto-source {
+  margin: 12px 0 0;
+  color: #b9809b;
+  font-size: 12px;
+}
+
+.crypto-source::first-letter {
+  color: #f08ab8;
+}
+
+@media (max-width: 680px) {
+  .crypto-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crypto-header h2 {
+    font-size: 21px;
+  }
+
+  .crypto-symbol {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  .crypto-error {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+
+/* Rožinė temos spalvų schema */
+.fx-card, .fx-rates { background: linear-gradient(180deg, #4a2136 0%, #2d1824 100%); border-color: rgba(240,138,184,.28); }
+.fx-result { background: rgba(240,138,184,.10); }
+.fx-swap { background: #f08ab8; color: #3a1828; }
+.fx-field input, .fx-field select { background: #321b28; border-color: rgba(240,138,184,.18); color: #fff4fa; }
+.fx-field input:focus, .fx-field select:focus { border-color: #f08ab8; outline-color: #f08ab8; }
+.crypto-card { background: linear-gradient(180deg, #4a2136 0%, #2d1824 100%); border-color: rgba(240,138,184,.28); }
+.crypto-kicker { color: #f08ab8; }
+.crypto-symbol { background: #f08ab8; color: #3a1828; }
+.crypto-field input, .crypto-field select { background: #321b28; border-color: rgba(240,138,184,.18); color: #fff4fa; }
+.crypto-field input:focus, .crypto-field select:focus { outline-color: #f08ab8; }
+.crypto-result { background: rgba(240,138,184,.10); }
