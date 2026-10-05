@@ -37,11 +37,25 @@ const CRYPTOCURRENCIES = [
   { id: 'ripple', name: 'XRP', symbol: 'XRP' },
 ]
 
+const CRYPTO_IDS = CRYPTOCURRENCIES.map((item) => item.id).join(',')
+
+function formatCryptoMoney(value, code) {
+  if (!Number.isFinite(value)) return '—'
+  const abs = Math.abs(value)
+  const maximumFractionDigits = abs >= 1 ? 2 : abs >= 0.01 ? 4 : 6
+  return new Intl.NumberFormat('lt-LT', {
+    style: 'currency',
+    currency: code,
+    maximumFractionDigits,
+  }).format(value)
+}
+
 function CryptoCalculator() {
   const [crypto, setCrypto] = useState('bitcoin')
   const [currency, setCurrency] = useState('eur')
   const [amount, setAmount] = useState('1')
-  const [price, setPrice] = useState(null)
+  const [prices, setPrices] = useState(null)
+  const [updatedAt, setUpdatedAt] = useState(null)
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const requestController = useRef(null)
@@ -55,7 +69,7 @@ function CryptoCalculator() {
 
     try {
       const response = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${crypto}&vs_currencies=${currency}`,
+        `https://api.coingecko.com/api/v3/simple/price?ids=${CRYPTO_IDS}&vs_currencies=${currency}&include_last_updated_at=true`,
         { signal: controller.signal },
       )
 
@@ -64,24 +78,35 @@ function CryptoCalculator() {
       }
 
       const data = await response.json()
-      const currentPrice = data?.[crypto]?.[currency]
+      const nextPrices = {}
+      let latestUpdate = 0
 
-      if (!Number.isFinite(currentPrice)) {
-        throw new Error('Kainos duomenų nėra.')
+      for (const item of CRYPTOCURRENCIES) {
+        const currentPrice = data?.[item.id]?.[currency]
+        if (!Number.isFinite(currentPrice)) {
+          throw new Error('Kainos duomenų nėra.')
+        }
+        nextPrices[item.id] = currentPrice
+        const stamp = data?.[item.id]?.last_updated_at
+        if (Number.isFinite(stamp) && stamp > latestUpdate) {
+          latestUpdate = stamp
+        }
       }
 
       if (controller.signal.aborted) return
-      setPrice(currentPrice)
+      setPrices(nextPrices)
+      setUpdatedAt(latestUpdate || Date.now() / 1000)
       setStatus('ready')
     } catch {
       if (controller.signal.aborted) return
-      setPrice(null)
+      setPrices(null)
+      setUpdatedAt(null)
       setStatus('error')
       setError(
         'Kriptovaliutos kainos gauti nepavyko. Patikrinkite internetą ir bandykite dar kartą.',
       )
     }
-  }, [crypto, currency])
+  }, [currency])
 
   useEffect(() => {
     loadCryptoPrice()
@@ -89,14 +114,17 @@ function CryptoCalculator() {
   }, [loadCryptoPrice])
 
   const numericAmount = Number(String(amount).replace(',', '.'))
+  const price = prices?.[crypto] ?? null
   const result =
     Number.isFinite(numericAmount) && price !== null
       ? numericAmount * price
       : NaN
 
   const selectedCrypto = CRYPTOCURRENCIES.find((item) => item.id === crypto)
+  const fiatCode = currency.toUpperCase()
 
   return (
+    <div className="fx-currency-column">
     <section className="crypto-card" aria-live="polite">
       <div className="crypto-header">
         <div>
@@ -176,22 +204,11 @@ function CryptoCalculator() {
         {status === 'ready' && (
           <>
             <p className="crypto-result-value">
-              {Number.isFinite(result)
-                ? new Intl.NumberFormat('lt-LT', {
-                    style: 'currency',
-                    currency: currency.toUpperCase(),
-                    maximumFractionDigits: 2,
-                  }).format(result)
-                : '—'}
+              {formatCryptoMoney(result, fiatCode)}
             </p>
 
             <p className="crypto-result-rate">
-              1 {selectedCrypto?.symbol} ={' '}
-              {new Intl.NumberFormat('lt-LT', {
-                style: 'currency',
-                currency: currency.toUpperCase(),
-                maximumFractionDigits: 8,
-              }).format(price)}
+              1 {selectedCrypto?.symbol} = {formatCryptoMoney(price, fiatCode)}
             </p>
           </>
         )}
@@ -201,6 +218,30 @@ function CryptoCalculator() {
         ● Kaina gaunama iš kriptovaliutų rinkos API
       </p>
     </section>
+
+    <section className="fx-rates">
+      <div className="fx-rates-head">
+        <h2>Kursai {fiatCode}</h2>
+        <p>
+          {updatedAt
+            ? `Atnaujinta ${new Date(updatedAt * 1000).toLocaleString('lt-LT')}`
+            : 'Laukiama duomenų'}
+        </p>
+      </div>
+      <ul>
+        {CRYPTOCURRENCIES.map((item) => (
+          <li key={item.id}>
+            <span>
+              {item.symbol} — {item.name}
+            </span>
+            <strong>
+              {prices ? formatCryptoMoney(prices[item.id], fiatCode) : '—'}
+            </strong>
+          </li>
+        ))}
+      </ul>
+    </section>
+    </div>
   )
 }
 
