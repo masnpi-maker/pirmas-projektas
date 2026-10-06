@@ -43,6 +43,7 @@ Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pat
 ## UI ir konvencijos
 
 - UI tekstai lietuviški; galima perjungti tamsią ir šviesią temas viršuje esančiu prieinamu mygtuku. Pasirinkimas saugomas `localStorage`; tamsi tema naudoja bordo/plum korteles, šviesi – baltas korteles, abiejose lieka rožiniai akcentai ir viršutinis glow.
+- Abiejų skaičiuoklių rezultatų kortelėse yra mygtukas rezultatui nukopijuoti per naršyklės Clipboard API; kopijavimo sėkmė ar klaida parodoma lietuviškai.
 - `fx-*` klasės skirtos valiutų konverteriui, `crypto-*` – kriptovaliutų daliai.
 - Išdėstymas dviejų stulpelių, iki 900 px – vieno stulpelio; mažesniuose ekranuose laukų grupės taip pat persirikiuoja.
 - Rezultatams naudojamas `aria-live="polite"`, klaidoms `role="alert"`, laukams susieti `label`/`htmlFor`, ikoniniam mygtukui `aria-label`.
@@ -57,6 +58,7 @@ Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pat
 
 ## Sprendimų žurnalas
 
+- 2026-10-06: Pridėti rezultatų kopijavimo mygtukai valiutų ir kriptovaliutų skaičiuoklėse.
 - 2026-10-06: Pridėtas tamsios ir šviesios temos perjungiklis; pasirinkimas išsaugomas `localStorage`.
 - 2026-10-06: Patikslintas projekto kontekstas pagal esamą kodą, įskaitant CoinGecko užklausą visoms kriptovaliutoms ir kripto kainų sąrašą. Pridėtos projekto lygmens instrukcijos `AGENTS.md`.
 - 2026-10-06: Valiutų ir kriptovaliutų kursų sąrašuose pridėtas pokytis procentais: fiat valiutoms lyginama su ankstesne paskelbta darbo diena, kriptovaliutoms naudojamas CoinGecko 24 val. pokytis.

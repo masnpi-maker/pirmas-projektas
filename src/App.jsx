@@ -36,6 +36,21 @@ function formatPercent(value) {
   }).format(value)}%`
 }
 
+async function copyResult(value, setCopyStatus) {
+  try {
+    await navigator.clipboard.writeText(value)
+    setCopyStatus('copied')
+  } catch {
+    setCopyStatus('error')
+  }
+}
+
+function copyStatusLabel(status) {
+  if (status === 'copied') return 'Nukopijuota'
+  if (status === 'error') return 'Nepavyko nukopijuoti'
+  return 'Kopijuoti rezultatą'
+}
+
 const CRYPTOCURRENCIES = [
   { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
   { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
@@ -67,6 +82,7 @@ function CryptoCalculator() {
   const [updatedAt, setUpdatedAt] = useState(null)
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
+  const [copyStatus, setCopyStatus] = useState('idle')
   const requestController = useRef(null)
 
   const loadCryptoPrice = useCallback(async () => {
@@ -160,7 +176,10 @@ function CryptoCalculator() {
           <select
             id="crypto"
             value={crypto}
-            onChange={(event) => setCrypto(event.target.value)}
+            onChange={(event) => {
+              setCrypto(event.target.value)
+              setCopyStatus('idle')
+            }}
           >
             {CRYPTOCURRENCIES.map((item) => (
               <option key={item.id} value={item.id}>
@@ -178,7 +197,10 @@ function CryptoCalculator() {
             min="0"
             step="any"
             value={amount}
-            onChange={(event) => setAmount(event.target.value)}
+            onChange={(event) => {
+              setAmount(event.target.value)
+              setCopyStatus('idle')
+            }}
             placeholder="0.00"
           />
         </div>
@@ -188,7 +210,10 @@ function CryptoCalculator() {
           <select
             id="crypto-currency"
             value={currency}
-            onChange={(event) => setCurrency(event.target.value)}
+            onChange={(event) => {
+              setCurrency(event.target.value)
+              setCopyStatus('idle')
+            }}
           >
             <option value="eur">EUR — Euras</option>
             <option value="usd">USD — JAV doleris</option>
@@ -225,6 +250,19 @@ function CryptoCalculator() {
             <p className="crypto-result-rate">
               1 {selectedCrypto?.symbol} = {formatCryptoMoney(price, fiatCode)}
             </p>
+            <button
+              type="button"
+              className="fx-copy-button"
+              onClick={() => copyResult(formatCryptoMoney(result, fiatCode), setCopyStatus)}
+              disabled={!Number.isFinite(result)}
+            >
+              {copyStatusLabel(copyStatus)}
+            </button>
+            {copyStatus === 'error' && (
+              <span className="fx-copy-feedback" role="status">
+                Nepavyko nukopijuoti rezultato.
+              </span>
+            )}
           </>
         )}
       </div>
@@ -281,6 +319,7 @@ function App() {
   const [updatedAt, setUpdatedAt] = useState(null)
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
+  const [copyStatus, setCopyStatus] = useState('idle')
 
   const loadRates = useCallback(async () => {
     setStatus('loading')
@@ -394,7 +433,10 @@ function App() {
                 id="amount"
                 inputMode="decimal"
                 value={amount}
-                onChange={(event) => setAmount(event.target.value)}
+                onChange={(event) => {
+                  setAmount(event.target.value)
+                  setCopyStatus('idle')
+                }}
                 placeholder="0.00"
               />
             </div>
@@ -405,7 +447,10 @@ function App() {
                 <select
                   id="from"
                   value={from}
-                  onChange={(event) => setFrom(event.target.value)}
+                  onChange={(event) => {
+                    setFrom(event.target.value)
+                    setCopyStatus('idle')
+                  }}
                 >
                   {CURRENCIES.map((currency) => (
                     <option key={currency.code} value={currency.code}>
@@ -429,7 +474,10 @@ function App() {
                 <select
                   id="to"
                   value={to}
-                  onChange={(event) => setTo(event.target.value)}
+                  onChange={(event) => {
+                    setTo(event.target.value)
+                    setCopyStatus('idle')
+                  }}
                 >
                   {CURRENCIES.map((currency) => (
                     <option key={currency.code} value={currency.code}>
@@ -450,6 +498,19 @@ function App() {
               <p className="fx-result-rate">
                 1 {from} = {formatRate(pairRate)} {to}
               </p>
+              <button
+                type="button"
+                className="fx-copy-button"
+                onClick={() => copyResult(formatMoney(converted, to), setCopyStatus)}
+                disabled={status !== 'ready' || !Number.isFinite(converted)}
+              >
+                {copyStatusLabel(copyStatus)}
+              </button>
+              {copyStatus === 'error' && (
+                <span className="fx-copy-feedback" role="status">
+                  Nepavyko nukopijuoti rezultato.
+                </span>
+              )}
             </div>
 
             {status === 'error' && (
