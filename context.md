@@ -16,8 +16,8 @@ Lietuviška vieno puslapio React programa, kurioje yra fiat valiutų konverteris
 
 ## Failų struktūra
 
-- `src/App.jsx` – valiutų konverteris, jame apibrėžtas `CryptoCalculator` ir `/graphics` puslapio rodymas.
-- `src/App.css`, `src/index.css` – komponentų ir bendrieji stiliai, įskaitant „Graphics“ puslapio kortelę.
+- `src/App.jsx` – valiutų konverteris, `CryptoCalculator` ir `/graphics` istorinių kursų puslapis.
+- `src/App.css`, `src/index.css` – komponentų ir bendrieji stiliai, įskaitant reaguojantį kursų grafiką.
 - `src/main.jsx` – React įėjimo taškas, `StrictMode`.
 - `src/AGENTS.md` – `src/` katalogo darbo instrukcijos.
 - `public/`, `index.html`, `vite.config.js`, `eslint.config.js`, `package.json`.
@@ -29,6 +29,10 @@ Lietuviška vieno puslapio React programa, kurioje yra fiat valiutų konverteris
 `App` saugo sumą, valiutų porą, EUR bazės kursus, atnaujinimo datą, užklausos būseną ir klaidą. Kursai vieną kartą užkraunami per `useEffect`/`useCallback` iš Frankfurter (`https://api.frankfurter.dev/v1/latest?base=EUR&symbols=PLN,GBP,USD`). Papildoma laiko eilutės užklausa randa ankstesnį paskelbtą kursą (iki 7 kalendorinių dienų atgal); EUR bazės kursų lentelėje rodomas procentinis pokytis nuo to kurso. Jei istorinių duomenų gauti nepavyksta, pokytis rodomas kaip brūkšnys, o dabartiniai kursai veikia toliau. Konvertavimas skaičiuojamas per EUR bazę; yra valiutų sukeitimo mygtukas. Sumos kablelis pakeičiamas tašku, formatavimui naudojamas `Intl.NumberFormat('lt-LT')`.
 
 Palaikomos valiutos: EUR, PLN, GBP, USD.
+
+### Istorinių kursų grafikas
+
+`/graphics` puslapyje galima pasirinkti 7D, 30D, 90D arba 1Y laikotarpį ir EUR/USD, EUR/PLN arba EUR/GBP porą. Pasirinkus kitą reikšmę, komponentas užklausia Frankfurter v1 laiko eilutės API su pasirinkta pradžios/pabaigos data, bazine valiuta ir simboliu. Atsakymo duomenys rodomi reaguojančiame SVG linijiniame grafike su kursų skale ir datomis. Užklausa atšaukiama pakeitus pasirinkimą arba palikus puslapį; klaidos atveju rodomas pranešimas.
 
 ### Kriptovaliutų skaičiuoklė
 
@@ -59,6 +63,7 @@ Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pat
 ## Sprendimų žurnalas
 
 - 2026-10-06: Pridėtas „Graphics“ navigacijos mygtukas ir atskiras `/graphics` puslapis su grįžimo nuoroda.
+- 2026-10-06: „Graphics“ puslapyje pridėtas istorinių EUR kursų grafikas, 7D/30D/90D/1Y laikotarpiai ir EUR/USD, EUR/PLN, EUR/GBP poros.
 - 2026-10-06: Pridėti rezultatų kopijavimo mygtukai valiutų ir kriptovaliutų skaičiuoklėse.
 - 2026-10-06: Pridėtas tamsios ir šviesios temos perjungiklis; pasirinkimas išsaugomas `localStorage`.
 - 2026-10-06: Patikslintas projekto kontekstas pagal esamą kodą, įskaitant CoinGecko užklausą visoms kriptovaliutoms ir kripto kainų sąrašą. Pridėtos projekto lygmens instrukcijos `AGENTS.md`.

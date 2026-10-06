@@ -303,6 +303,183 @@ function CryptoCalculator() {
   )
 }
 
+const GRAPH_PERIODS = [
+  { label: '7D', days: 7 },
+  { label: '30D', days: 30 },
+  { label: '90D', days: 90 },
+  { label: '1Y', days: 365 },
+]
+
+const GRAPH_PAIRS = [
+  { base: 'EUR', quote: 'USD' },
+  { base: 'EUR', quote: 'PLN' },
+  { base: 'EUR', quote: 'GBP' },
+]
+
+function GraphicsPage() {
+  const [period, setPeriod] = useState(30)
+  const [pair, setPair] = useState(GRAPH_PAIRS[0])
+  const [rates, setRates] = useState([])
+  const [status, setStatus] = useState('loading')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const endDate = new Date()
+    const startDate = new Date(endDate)
+    startDate.setUTCDate(startDate.getUTCDate() - period)
+    const formatDate = (date) => date.toISOString().slice(0, 10)
+
+    async function loadHistory() {
+      setStatus('loading')
+      setError('')
+
+      try {
+        const response = await fetch(
+          `https://api.frankfurter.dev/v1/${formatDate(startDate)}..${formatDate(endDate)}?base=${pair.base}&symbols=${pair.quote}`,
+          { signal: controller.signal },
+        )
+
+        if (!response.ok) throw new Error('Nepavyko gauti istorinių kursų.')
+
+        const data = await response.json()
+        const points = Object.entries(data.rates ?? {})
+          .map(([date, values]) => ({ date, rate: values[pair.quote] }))
+          .filter((point) => Number.isFinite(point.rate))
+          .sort((left, right) => left.date.localeCompare(right.date))
+
+        if (!points.length) throw new Error('Pasirinktu laikotarpiu kursų nėra.')
+        if (controller.signal.aborted) return
+        setRates(points)
+        setStatus('ready')
+      } catch {
+        if (controller.signal.aborted) return
+        setRates([])
+        setError('Istorinių kursų gauti nepavyko. Patikrinkite interneto ryšį ir bandykite dar kartą.')
+        setStatus('error')
+      }
+    }
+
+    loadHistory()
+    return () => controller.abort()
+  }, [pair, period])
+
+  const chart = useMemo(() => {
+    if (!rates.length) return null
+    const width = 800
+    const height = 300
+    const padding = { top: 24, right: 18, bottom: 38, left: 64 }
+    const values = rates.map((point) => point.rate)
+    const minimum = Math.min(...values)
+    const maximum = Math.max(...values)
+    const spread = maximum - minimum || maximum * 0.02 || 1
+    const minValue = minimum - spread * 0.08
+    const maxValue = maximum + spread * 0.08
+    const points = rates.map((point, index) => ({
+      ...point,
+      x: padding.left + (index / Math.max(rates.length - 1, 1)) * (width - padding.left - padding.right),
+      y: padding.top + ((maxValue - point.rate) / (maxValue - minValue)) * (height - padding.top - padding.bottom),
+    }))
+
+    return { width, height, padding, points, minValue, maxValue }
+  }, [rates])
+
+  return (
+    <section className="graphics-page" aria-labelledby="graphics-title">
+      <div className="graphics-heading">
+        <div>
+          <p className="fx-kicker">Valiutų istorija</p>
+          <h2 id="graphics-title">Graphics</h2>
+          <p className="fx-lead">Stebėkite, kaip keitėsi pasirinktos valiutų poros kursas.</p>
+        </div>
+      </div>
+
+      <div className="graphics-controls">
+        <div className="graphics-control-group" role="group" aria-label="Pasirinkite laikotarpį">
+          <span className="graphics-control-label">Laikotarpis</span>
+          <div className="graphics-options">
+            {GRAPH_PERIODS.map((option) => (
+              <button
+                key={option.label}
+                type="button"
+                className={`graphics-option${period === option.days ? ' is-selected' : ''}`}
+                aria-pressed={period === option.days}
+                onClick={() => setPeriod(option.days)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="graphics-control-group" role="group" aria-label="Pasirinkite valiutų porą">
+          <span className="graphics-control-label">Valiutų pora</span>
+          <div className="graphics-options">
+            {GRAPH_PAIRS.map((option) => {
+              const selected = pair.base === option.base && pair.quote === option.quote
+              return (
+                <button
+                  key={option.quote}
+                  type="button"
+                  className={`graphics-option${selected ? ' is-selected' : ''}`}
+                  aria-pressed={selected}
+                  onClick={() => setPair(option)}
+                >
+                  {option.base} / {option.quote}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="graphics-chart-card" aria-live="polite">
+        <div className="graphics-chart-heading">
+          <div>
+            <p className="graphics-chart-label">{pair.base} / {pair.quote}</p>
+            <strong>{rates.length ? formatRate(rates[rates.length - 1].rate) : '—'} {pair.quote}</strong>
+          </div>
+          <span>{status === 'ready' ? `${rates.length} duomenų taškų` : ''}</span>
+        </div>
+
+        {status === 'loading' && <p className="graphics-message">Kraunami istoriniai kursai…</p>}
+        {status === 'error' && <p className="graphics-message graphics-error" role="alert">{error}</p>}
+        {status === 'ready' && chart && (
+          <div className="graphics-chart-wrap">
+            <svg
+              className="graphics-chart"
+              viewBox={`0 0 ${chart.width} ${chart.height}`}
+              role="img"
+              aria-label={`${pair.base} ir ${pair.quote} valiutų kurso grafikas`}
+            >
+              {[0, 0.5, 1].map((fraction) => {
+                const y = chart.padding.top + fraction * (chart.height - chart.padding.top - chart.padding.bottom)
+                const value = chart.maxValue - fraction * (chart.maxValue - chart.minValue)
+                return (
+                  <g key={fraction}>
+                    <line x1={chart.padding.left} x2={chart.width - chart.padding.right} y1={y} y2={y} className="graphics-gridline" />
+                    <text x={chart.padding.left - 10} y={y + 4} textAnchor="end" className="graphics-axis-label">{formatRate(value)}</text>
+                  </g>
+                )
+              })}
+              <polyline
+                points={chart.points.map((point) => `${point.x},${point.y}`).join(' ')}
+                className="graphics-line"
+              />
+              <text x={chart.padding.left} y={chart.height - 8} className="graphics-axis-label">
+                {new Date(`${rates[0].date}T12:00:00`).toLocaleDateString('lt-LT')}
+              </text>
+              <text x={chart.width - chart.padding.right} y={chart.height - 8} textAnchor="end" className="graphics-axis-label">
+                {new Date(`${rates[rates.length - 1].date}T12:00:00`).toLocaleDateString('lt-LT')}
+              </text>
+            </svg>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 function App() {
   const [theme, setTheme] = useState(() => {
     try {
@@ -428,11 +605,7 @@ function App() {
       </header>
 
       {isGraphicsPage ? (
-        <section className="graphics-page" aria-labelledby="graphics-title">
-          <p className="fx-kicker">Vizualizacijos</p>
-          <h2 id="graphics-title">Graphics</h2>
-          <p className="fx-lead">Grafikų puslapis paruoštas.</p>
-        </section>
+        <GraphicsPage />
       ) : <div className="fx-layout">
         <div className="fx-currency-column">
           <section className="fx-card" aria-live="polite">
