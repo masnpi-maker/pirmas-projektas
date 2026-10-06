@@ -266,6 +266,13 @@ function CryptoCalculator() {
 }
 
 function App() {
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('theme') === 'light' ? 'light' : 'dark'
+    } catch {
+      return 'dark'
+    }
+  })
   const [amount, setAmount] = useState('100')
   const [from, setFrom] = useState('EUR')
   const [to, setTo] = useState('PLN')
@@ -317,6 +324,15 @@ function App() {
     loadRates()
   }, [loadRates])
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    try {
+      localStorage.setItem('theme', theme)
+    } catch {
+      // Keep the selected theme for this session when storage is unavailable.
+    }
+  }, [theme])
+
   const numericAmount = useMemo(() => {
     const parsed = Number(String(amount).replace(',', '.'))
     return Number.isFinite(parsed) ? parsed : NaN
@@ -351,11 +367,22 @@ function App() {
       <div className="fx-glow" aria-hidden="true" />
 
       <header className="fx-header">
-        <p className="fx-kicker">Naujausi valiutų kursai</p>
-        <h1>Valiutų skaičiuoklė</h1>
-        <p className="fx-lead">
-          Konvertuokite tarp EUR, PLN, GBP ir USD pagal naujausius skelbiamus kursus.
-        </p>
+        <div>
+          <p className="fx-kicker">Naujausi valiutų kursai</p>
+          <h1>Valiutų skaičiuoklė</h1>
+          <p className="fx-lead">
+            Konvertuokite tarp EUR, PLN, GBP ir USD pagal naujausius skelbiamus kursus.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="fx-theme-toggle"
+          onClick={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
+          aria-label="Perjungti šviesią ir tamsią temą"
+          aria-pressed={theme === 'light'}
+        >
+          {theme === 'dark' ? '☀ Šviesi tema' : '☾ Tamsi tema'}
+        </button>
       </header>
 
       <div className="fx-layout">

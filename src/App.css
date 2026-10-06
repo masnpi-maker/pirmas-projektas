@@ -21,7 +21,31 @@
 }
 
 .fx-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
   text-align: left;
+}
+
+.fx-theme-toggle {
+  flex: 0 0 auto;
+  border: 1px solid rgba(240, 138, 184, 0.35);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(70, 31, 52, 0.8);
+  color: #fff4fa;
+  cursor: pointer;
+  font: inherit;
+}
+
+.fx-theme-toggle:hover {
+  border-color: #f08ab8;
+}
+
+.fx-theme-toggle:focus-visible {
+  outline: 2px solid #f08ab8;
+  outline-offset: 3px;
 }
 
 .fx-layout {
@@ -235,6 +259,10 @@
 }
 
 @media (max-width: 680px) {
+  .fx-header {
+    flex-direction: column;
+  }
+
   .fx-pair {
     grid-template-columns: 1fr;
   }
@@ -443,3 +471,76 @@
 .crypto-field input, .crypto-field select { background: #321b28; border-color: rgba(240,138,184,.18); color: #fff4fa; }
 .crypto-field input:focus, .crypto-field select:focus { outline-color: #f08ab8; }
 .crypto-result { background: rgba(240,138,184,.10); }
+
+:root[data-theme='light'] .fx-header h1,
+:root[data-theme='light'] .fx-rates-head h2,
+:root[data-theme='light'] .fx-result-value,
+:root[data-theme='light'] .crypto-header h2,
+:root[data-theme='light'] .crypto-result-value,
+:root[data-theme='light'] .fx-rates li,
+:root[data-theme='light'] .crypto-symbol {
+  color: #342633;
+}
+
+:root[data-theme='light'] .fx-kicker,
+:root[data-theme='light'] .crypto-kicker {
+  color: #a94170;
+}
+
+:root[data-theme='light'] .fx-lead,
+:root[data-theme='light'] .fx-field label,
+:root[data-theme='light'] .fx-result-label,
+:root[data-theme='light'] .fx-result-rate,
+:root[data-theme='light'] .fx-rates-head p,
+:root[data-theme='light'] .fx-rate-change,
+:root[data-theme='light'] .crypto-lead,
+:root[data-theme='light'] .crypto-field label,
+:root[data-theme='light'] .crypto-result-label,
+:root[data-theme='light'] .crypto-result-rate {
+  color: #705b6b;
+}
+
+:root[data-theme='light'] .fx-card,
+:root[data-theme='light'] .fx-rates,
+:root[data-theme='light'] .crypto-card {
+  background: linear-gradient(180deg, #fff 0%, #fff8fb 100%);
+  border-color: #ead7e1;
+  box-shadow: 0 18px 44px rgba(74, 37, 58, 0.1);
+}
+
+:root[data-theme='light'] .fx-field input,
+:root[data-theme='light'] .fx-field select,
+:root[data-theme='light'] .crypto-field input,
+:root[data-theme='light'] .crypto-field select {
+  background: #fff;
+  border-color: #dfced8;
+  color: #342633;
+}
+
+:root[data-theme='light'] .fx-result,
+:root[data-theme='light'] .crypto-result {
+  background: #f8eaf1;
+}
+
+:root[data-theme='light'] .fx-rates li {
+  border-color: #efE3e9;
+}
+
+:root[data-theme='light'] .fx-theme-toggle {
+  background: #fff;
+  color: #56354a;
+  border-color: #dfbed0;
+}
+
+:root[data-theme='light'] .crypto-symbol {
+  background: #f08ab8;
+}
+
+:root[data-theme='light'] .crypto-source {
+  color: #805267;
+}
+
+:root[data-theme='light'] .fx-error,
+:root[data-theme='light'] .crypto-error {
+  color: #982f3b;
+}
