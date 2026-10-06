@@ -303,6 +303,263 @@ function CryptoCalculator() {
   )
 }
 
+const GRAPH_PERIODS = [
+  { label: '7D', days: 7 },
+  { label: '30D', days: 30 },
+  { label: '90D', days: 90 },
+  { label: '1Y', days: 365 },
+]
+
+const GRAPH_PAIRS = [
+  { base: 'EUR', quote: 'USD' },
+  { base: 'EUR', quote: 'PLN' },
+  { base: 'EUR', quote: 'GBP' },
+]
+
+function GraphicsPage() {
+  const [chartType, setChartType] = useState('fiat')
+  const [period, setPeriod] = useState(30)
+  const [pair, setPair] = useState(GRAPH_PAIRS[0])
+  const [crypto, setCrypto] = useState('bitcoin')
+  const [cryptoCurrency, setCryptoCurrency] = useState('eur')
+  const [rates, setRates] = useState([])
+  const [status, setStatus] = useState('loading')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    async function loadHistory() {
+      setStatus('loading')
+      setError('')
+
+      try {
+        let points
+
+        if (chartType === 'fiat') {
+          const endDate = new Date()
+          const startDate = new Date(endDate)
+          startDate.setUTCDate(startDate.getUTCDate() - period)
+          const formatDate = (date) => date.toISOString().slice(0, 10)
+          const response = await fetch(
+            `https://api.frankfurter.dev/v1/${formatDate(startDate)}..${formatDate(endDate)}?base=${pair.base}&symbols=${pair.quote}`,
+            { signal: controller.signal },
+          )
+          if (!response.ok) throw new Error('Nepavyko gauti istorinių kursų.')
+          const data = await response.json()
+          points = Object.entries(data.rates ?? {}).map(([date, values]) => ({
+            date,
+            timestamp: Date.parse(`${date}T00:00:00Z`),
+            rate: values[pair.quote],
+          }))
+        } else {
+          const response = await fetch(
+            `https://api.coingecko.com/api/v3/coins/${crypto}/market_chart?vs_currency=${cryptoCurrency}&days=${period}`,
+            { signal: controller.signal },
+          )
+          if (!response.ok) throw new Error('Nepavyko gauti kriptovaliutos istorinių kainų.')
+          const data = await response.json()
+          points = (data.prices ?? []).map(([timestamp, rate]) => ({
+            timestamp,
+            date: new Date(timestamp).toISOString().slice(0, 10),
+            rate,
+          }))
+        }
+
+        points = points
+          .filter((point) => Number.isFinite(point.rate) && Number.isFinite(point.timestamp))
+          .sort((left, right) => left.timestamp - right.timestamp)
+        if (!points.length) throw new Error('Pasirinktu laikotarpiu duomenų nėra.')
+        if (controller.signal.aborted) return
+        setRates(points)
+        setStatus('ready')
+      } catch {
+        if (controller.signal.aborted) return
+        setRates([])
+        setError('Istorinių duomenų gauti nepavyko. Patikrinkite interneto ryšį ir bandykite dar kartą.')
+        setStatus('error')
+      }
+    }
+
+    loadHistory()
+    return () => controller.abort()
+  }, [chartType, crypto, cryptoCurrency, pair, period])
+
+  const chart = useMemo(() => {
+    if (!rates.length) return null
+    const width = 800
+    const height = 300
+    const padding = { top: 24, right: 18, bottom: 38, left: 64 }
+    const values = rates.map((point) => point.rate)
+    const minimum = Math.min(...values)
+    const maximum = Math.max(...values)
+    const spread = maximum - minimum || maximum * 0.02 || 1
+    const minValue = minimum - spread * 0.08
+    const maxValue = maximum + spread * 0.08
+    const points = rates.map((point, index) => ({
+      ...point,
+      x: padding.left + (index / Math.max(rates.length - 1, 1)) * (width - padding.left - padding.right),
+      y: padding.top + ((maxValue - point.rate) / (maxValue - minValue)) * (height - padding.top - padding.bottom),
+    }))
+
+    return { width, height, padding, points, minValue, maxValue }
+  }, [rates])
+
+  return (
+    <section className="graphics-page" aria-labelledby="graphics-title">
+      <div className="graphics-heading">
+        <div>
+          <p className="fx-kicker">Valiutų istorija</p>
+          <h2 id="graphics-title">Graphics</h2>
+          <p className="fx-lead">Stebėkite, kaip keitėsi pasirinktos valiutų poros kursas.</p>
+        </div>
+      </div>
+
+      <div className="graphics-controls">
+        <div className="graphics-control-group" role="group" aria-label="Grafiko tipas">
+          <span className="graphics-control-label">Duomenys</span>
+          <div className="graphics-options">
+            <button
+              type="button"
+              className={`graphics-option${chartType === 'fiat' ? ' is-selected' : ''}`}
+              aria-pressed={chartType === 'fiat'}
+              onClick={() => setChartType('fiat')}
+            >
+              Valiutų kursai
+            </button>
+            <button
+              type="button"
+              className={`graphics-option${chartType === 'crypto' ? ' is-selected' : ''}`}
+              aria-pressed={chartType === 'crypto'}
+              onClick={() => setChartType('crypto')}
+            >
+              Kriptovaliutos
+            </button>
+          </div>
+        </div>
+
+        <div className="graphics-control-group" role="group" aria-label="Pasirinkite laikotarpį">
+          <span className="graphics-control-label">Laikotarpis</span>
+          <div className="graphics-options">
+            {GRAPH_PERIODS.map((option) => (
+              <button
+                key={option.label}
+                type="button"
+                className={`graphics-option${period === option.days ? ' is-selected' : ''}`}
+                aria-pressed={period === option.days}
+                onClick={() => setPeriod(option.days)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {chartType === 'fiat' ? (
+          <div className="graphics-control-group" role="group" aria-label="Pasirinkite valiutų porą">
+            <span className="graphics-control-label">Valiutų pora</span>
+            <div className="graphics-options">
+              {GRAPH_PAIRS.map((option) => {
+                const selected = pair.base === option.base && pair.quote === option.quote
+                return (
+                  <button
+                    key={option.quote}
+                    type="button"
+                    className={`graphics-option${selected ? ' is-selected' : ''}`}
+                    aria-pressed={selected}
+                    onClick={() => setPair(option)}
+                  >
+                    {option.base} / {option.quote}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="graphics-crypto-controls">
+            <div className="graphics-control-group">
+              <label className="graphics-control-label" htmlFor="graphics-crypto">Kriptovaliuta</label>
+              <select id="graphics-crypto" value={crypto} onChange={(event) => setCrypto(event.target.value)}>
+                {CRYPTOCURRENCIES.map((item) => (
+                  <option key={item.id} value={item.id}>{item.symbol} — {item.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="graphics-control-group">
+              <label className="graphics-control-label" htmlFor="graphics-currency">Kainos valiuta</label>
+              <select id="graphics-currency" value={cryptoCurrency} onChange={(event) => setCryptoCurrency(event.target.value)}>
+                <option value="eur">EUR — Euras</option>
+                <option value="usd">USD — JAV doleris</option>
+                <option value="gbp">GBP — Svaras sterlingų</option>
+                <option value="pln">PLN — Lenkijos zlotas</option>
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="graphics-chart-card" aria-live="polite">
+        <div className="graphics-chart-heading">
+          <div>
+            <p className="graphics-chart-label">
+              {chartType === 'fiat' ? `${pair.base} / ${pair.quote}` : CRYPTOCURRENCIES.find((item) => item.id === crypto)?.symbol}
+            </p>
+            <strong>
+              {rates.length
+                ? chartType === 'fiat'
+                  ? `${formatRate(rates[rates.length - 1].rate)} ${pair.quote}`
+                  : formatCryptoMoney(rates[rates.length - 1].rate, cryptoCurrency.toUpperCase())
+                : '—'}
+            </strong>
+          </div>
+          <span>{status === 'ready' ? `${rates.length} duomenų taškų` : ''}</span>
+        </div>
+
+        {status === 'loading' && (
+          <p className="graphics-message">
+            {chartType === 'fiat' ? 'Kraunami istoriniai kursai…' : 'Kraunamos istorinės kainos…'}
+          </p>
+        )}
+        {status === 'error' && <p className="graphics-message graphics-error" role="alert">{error}</p>}
+        {status === 'ready' && chart && (
+          <div className="graphics-chart-wrap">
+            <svg
+              className="graphics-chart"
+              viewBox={`0 0 ${chart.width} ${chart.height}`}
+              role="img"
+              aria-label={chartType === 'fiat'
+                ? `${pair.base} ir ${pair.quote} valiutų kurso grafikas`
+                : `${crypto} kriptovaliutos kainos grafikas ${cryptoCurrency.toUpperCase()} valiuta`}
+            >
+              {[0, 0.5, 1].map((fraction) => {
+                const y = chart.padding.top + fraction * (chart.height - chart.padding.top - chart.padding.bottom)
+                const value = chart.maxValue - fraction * (chart.maxValue - chart.minValue)
+                return (
+                  <g key={fraction}>
+                    <line x1={chart.padding.left} x2={chart.width - chart.padding.right} y1={y} y2={y} className="graphics-gridline" />
+                    <text x={chart.padding.left - 10} y={y + 4} textAnchor="end" className="graphics-axis-label">
+                      {chartType === 'fiat' ? formatRate(value) : formatCryptoMoney(value, cryptoCurrency.toUpperCase())}
+                    </text>
+                  </g>
+                )
+              })}
+              <polyline
+                points={chart.points.map((point) => `${point.x},${point.y}`).join(' ')}
+                className="graphics-line"
+              />
+              <text x={chart.padding.left} y={chart.height - 8} className="graphics-axis-label">
+                {new Date(rates[0].timestamp).toLocaleDateString('lt-LT')}
+              </text>
+              <text x={chart.width - chart.padding.right} y={chart.height - 8} textAnchor="end" className="graphics-axis-label">
+                {new Date(rates[rates.length - 1].timestamp).toLocaleDateString('lt-LT')}
+              </text>
+            </svg>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 function App() {
   const [theme, setTheme] = useState(() => {
     try {
@@ -320,6 +577,7 @@ function App() {
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [copyStatus, setCopyStatus] = useState('idle')
+  const isGraphicsPage = window.location.pathname.replace(/\/$/, '') === '/graphics'
 
   const loadRates = useCallback(async () => {
     setStatus('loading')
@@ -413,6 +671,8 @@ function App() {
             Konvertuokite tarp EUR, PLN, GBP ir USD pagal naujausius skelbiamus kursus.
           </p>
         </div>
+        {!isGraphicsPage && <a className="fx-theme-toggle" href="/graphics">Graphics</a>}
+        {isGraphicsPage && <a className="fx-theme-toggle" href="/">Grįžti į skaičiuoklę</a>}
         <button
           type="button"
           className="fx-theme-toggle"
@@ -424,7 +684,9 @@ function App() {
         </button>
       </header>
 
-      <div className="fx-layout">
+      {isGraphicsPage ? (
+        <GraphicsPage />
+      ) : <div className="fx-layout">
         <div className="fx-currency-column">
           <section className="fx-card" aria-live="polite">
             <div className="fx-field">
@@ -559,7 +821,7 @@ function App() {
         </div>
 
         <CryptoCalculator />
-      </div>
+      </div>}
     </main>
   )
 }
