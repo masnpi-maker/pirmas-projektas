@@ -4,7 +4,7 @@ Paskutinį kartą atnaujinta: 2026-10-06
 
 ## Apžvalga
 
-Lietuviška vieno puslapio React programa, kurioje yra fiat valiutų konverteris ir kriptovaliutų skaičiuoklė. Tamsi ir šviesi temos su bordo/rožiniais akcentais; pasirinkimas išsaugomas naršyklės `localStorage`. Paskirtis, hostingas ir Git/GitHub darbo eiga: reikia patikslinti.
+Lietuviška React programa su valiutų konverteriu, kriptovaliutų skaičiuokle, istorinių grafikų ir aukso skaičiuoklės puslapiais. Pagrindinė valiutų programa turi tamsią ir šviesią temas; aukso skaičiuoklė naudoja atskirą šviesų aukso akcentų dizainą.
 
 ## Technologijos ir komandos
 
@@ -16,8 +16,11 @@ Lietuviška vieno puslapio React programa, kurioje yra fiat valiutų konverteris
 
 ## Failų struktūra
 
-- `src/App.jsx` – valiutų konverteris, `CryptoCalculator` ir `/graphics` istorinių kursų puslapis.
-- `src/App.css`, `src/index.css` – komponentų ir bendrieji stiliai, įskaitant reaguojantį kursų grafiką.
+- `src/App.jsx` – valiutų konverteris, `CryptoCalculator` ir kelių puslapių navigacija.
+- `src/components/GoldCalculator.jsx`, `src/GoldCalculator.css` – `/gold` aukso skaičiuoklės puslapis ir stiliai.
+- `src/data/goldPurities.js` – aukso prabų konfigūracija, uncijos konstanta ir aiškiai pažymėta atsarginė kaina.
+- `src/services/goldPriceService.js` – NBP aukso ir EUR/PLN dabartinės bei istorinių kainų užklausos.
+- `src/App.css`, `src/index.css` – valiutų ir kripto puslapių stiliai.
 - `src/main.jsx` – React įėjimo taškas, `StrictMode`.
 - `src/AGENTS.md` – `src/` katalogo darbo instrukcijos.
 - `public/`, `index.html`, `vite.config.js`, `eslint.config.js`, `package.json`.
@@ -40,9 +43,15 @@ Palaikomos valiutos: EUR, PLN, GBP, USD.
 
 Palaikomi CoinGecko ID: bitcoin, ethereum, tether, binancecoin, solana, ripple (BTC, ETH, USDT, BNB, SOL, XRP). Valiutos: EUR, USD, GBP, PLN. Rodoma pasirinkto kiekio vertė, vieneto kaina ir visų šešių kriptovaliutų kainų sąrašas. Kiekio kablelis pakeičiamas tašku; pinigai formatuojami `Intl.NumberFormat('lt-LT')`.
 
+### Aukso skaičiuoklė
+
+Pagrindinio puslapio mygtukas atidaro `/gold`. Praba pasirenkama iš vieno `goldPurities` konfigūracijos sąrašo. Svoris priima tašką arba kablelį; tuščias laukas reiškia 0, o netinkama/neigiama reikšmė rodoma kaip validacijos klaida. Bazinė gryno aukso kaina gaunama per `getGoldPrice()` iš NBP aukso kainos (PLN/g) ir tos pačios datos NBP EUR/PLN kurso, tada konvertuojama į EUR/g. Kainos būsena dalijama tarp antraštės, skaičiuoklės, prabų lentelės ir uncijos skaičiavimo. Duomenys atnaujinami kas 5 minutes; nepavykus užklausai naudojama 118.89 EUR/g demonstracinė atsarginė reikšmė, aiškiai pažymima UI.
+
+Rezultatas, gryno aukso svoris ir supirkimo įvertis skaičiuojami iš vienos bazinės kainos; prabos gramo kaina apvalinama iki centų, po to skaičiuojama bendra vertė. Istorijos grafikas gauna NBP dienines gryno aukso PLN/g ir EUR/PLN kotiruotes iki 90 dienų dalimis (NBP užklausa ribojama iki 93 dienų), perskaičiuoja į EUR/g, palaiko 24 val., 7 dienų, 1 mėnesio, 6 mėnesių ir 1 metų intervalus. NBP istorija yra darbo dienų orientacinė fiksacija, ne dienos eigos realaus laiko grafikas. API klaidos atveju rodomas prašytas istorijos klaidos pranešimas; demo istorijos duomenų nėra.
+
 ### API ribos
 
-Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pateikiami pagal naujausią Frankfurter datą, o CoinGecko kainoms galioja paslaugos užklausų limitai. Tai nėra tiesioginė kainų transliacija.
+Frankfurter, CoinGecko ir NBP API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat ir aukso dienos referenciniai kursai nėra prekybinė realaus laiko kotiruotė; CoinGecko kainoms galioja paslaugos užklausų limitai.
 
 ## UI ir konvencijos
 
@@ -62,6 +71,8 @@ Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pat
 
 ## Sprendimų žurnalas
 
+- 2026-10-06: `/gold` atnaujintas iki veikiančios aukso skaičiuoklės su NBP kainomis ir istorija, prabų lentele, supirkimo koeficientu, validacija, responsive SVG grafiku ir aiškiai pažymėta atsargine kaina.
+- 2026-10-06: Pagrindiniame puslapyje pridėtas „Aukso skaičiuoklė“ mygtukas ir atskiras rankiniu būdu įvedamos aukso kainos skaičiuoklės puslapis.
 - 2026-10-06: Pridėtas „Graphics“ navigacijos mygtukas ir atskiras `/graphics` puslapis su grįžimo nuoroda.
 - 2026-10-06: „Graphics“ puslapyje pridėtas istorinių EUR kursų grafikas, 7D/30D/90D/1Y laikotarpiai ir EUR/USD, EUR/PLN, EUR/GBP poros.
 - 2026-10-06: „Graphics“ puslapyje pridėtas perjungimas į kriptovaliutų istoriją su šešiais palaikomais aktyvais ir EUR/USD/GBP/PLN kainos valiutomis.

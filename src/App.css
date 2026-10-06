@@ -57,6 +57,11 @@
   font-size: clamp(28px, 5vw, 40px);
 }
 
+.gold-calculator {
+  width: 100%;
+  margin-top: 8px;
+}
+
 .graphics-heading {
   display: flex;
   justify-content: space-between;

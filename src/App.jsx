@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
+import GoldCalculator from './components/GoldCalculator.jsx'
 
 const CURRENCIES = [
   { code: 'EUR', name: 'Euras', flag: '🇪🇺' },
@@ -140,8 +141,11 @@ function CryptoCalculator() {
   }, [currency])
 
   useEffect(() => {
-    loadCryptoPrice()
-    return () => requestController.current?.abort()
+    const timer = window.setTimeout(loadCryptoPrice, 0)
+    return () => {
+      window.clearTimeout(timer)
+      requestController.current?.abort()
+    }
   }, [loadCryptoPrice])
 
   const numericAmount = Number(String(amount).replace(',', '.'))
@@ -560,7 +564,7 @@ function GraphicsPage() {
   )
 }
 
-function App() {
+function CurrencyApp() {
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem('theme') === 'light' ? 'light' : 'dark'
@@ -618,7 +622,8 @@ function App() {
   }, [])
 
   useEffect(() => {
-    loadRates()
+    const timer = window.setTimeout(loadRates, 0)
+    return () => window.clearTimeout(timer)
   }, [loadRates])
 
   useEffect(() => {
@@ -672,6 +677,7 @@ function App() {
           </p>
         </div>
         {!isGraphicsPage && <a className="fx-theme-toggle" href="/graphics">Graphics</a>}
+        {!isGraphicsPage && <a className="fx-theme-toggle" href="/gold">Aukso skaičiuoklė</a>}
         {isGraphicsPage && <a className="fx-theme-toggle" href="/">Grįžti į skaičiuoklę</a>}
         <button
           type="button"
@@ -824,6 +830,12 @@ function App() {
       </div>}
     </main>
   )
+}
+
+function App() {
+  return window.location.pathname.replace(/\/$/, '') === '/gold'
+    ? <GoldCalculator />
+    : <CurrencyApp />
 }
 
 export default App
