@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
+import GoldCalculator from './components/GoldCalculator.jsx'
 
 const CURRENCIES = [
   { code: 'EUR', name: 'Euras', flag: '🇪🇺' },
@@ -140,8 +141,11 @@ function CryptoCalculator() {
   }, [currency])
 
   useEffect(() => {
-    loadCryptoPrice()
-    return () => requestController.current?.abort()
+    const timer = window.setTimeout(loadCryptoPrice, 0)
+    return () => {
+      window.clearTimeout(timer)
+      requestController.current?.abort()
+    }
   }, [loadCryptoPrice])
 
   const numericAmount = Number(String(amount).replace(',', '.'))
@@ -560,45 +564,7 @@ function GraphicsPage() {
   )
 }
 
-function GoldCalculator() {
-  const [weight, setWeight] = useState('1')
-  const [pricePerGram, setPricePerGram] = useState('')
-  const numericWeight = Number(String(weight).replace(',', '.'))
-  const numericPrice = Number(String(pricePerGram).replace(',', '.'))
-  const value = numericWeight * numericPrice
-  const hasValues = weight.trim() !== '' && pricePerGram.trim() !== ''
-  const result = hasValues && numericWeight >= 0 && numericPrice >= 0 && Number.isFinite(value)
-    ? value
-    : NaN
-
-  return (
-    <section className="graphics-page" aria-labelledby="gold-title">
-      <p className="fx-kicker">Aukso vertė</p>
-      <h2 id="gold-title">Aukso skaičiuoklė</h2>
-      <p className="fx-lead">Įveskite aukso svorį ir gramo kainą, kad apskaičiuotumėte vertę.</p>
-      <div className="fx-card gold-calculator" aria-live="polite">
-        <div className="fx-field">
-          <label htmlFor="gold-weight">Aukso svoris (g)</label>
-          <input id="gold-weight" inputMode="decimal" value={weight} onChange={(event) => setWeight(event.target.value)} placeholder="0" />
-        </div>
-        <div className="fx-field">
-          <label htmlFor="gold-price">Kaina už gramą (EUR)</label>
-          <input id="gold-price" inputMode="decimal" value={pricePerGram} onChange={(event) => setPricePerGram(event.target.value)} placeholder="Įveskite kainą" />
-        </div>
-        <div className="fx-result">
-          <p className="fx-result-label">Apskaičiuota aukso vertė</p>
-          <p className="fx-result-value">
-            {Number.isFinite(result)
-              ? new Intl.NumberFormat('lt-LT', { style: 'currency', currency: 'EUR' }).format(result)
-              : '—'}
-          </p>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function App() {
+function CurrencyApp() {
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem('theme') === 'light' ? 'light' : 'dark'
@@ -616,7 +582,6 @@ function App() {
   const [error, setError] = useState('')
   const [copyStatus, setCopyStatus] = useState('idle')
   const isGraphicsPage = window.location.pathname.replace(/\/$/, '') === '/graphics'
-  const isGoldPage = window.location.pathname.replace(/\/$/, '') === '/gold'
 
   const loadRates = useCallback(async () => {
     setStatus('loading')
@@ -657,7 +622,8 @@ function App() {
   }, [])
 
   useEffect(() => {
-    loadRates()
+    const timer = window.setTimeout(loadRates, 0)
+    return () => window.clearTimeout(timer)
   }, [loadRates])
 
   useEffect(() => {
@@ -710,9 +676,9 @@ function App() {
             Konvertuokite tarp EUR, PLN, GBP ir USD pagal naujausius skelbiamus kursus.
           </p>
         </div>
-        {!isGraphicsPage && !isGoldPage && <a className="fx-theme-toggle" href="/graphics">Graphics</a>}
-        {!isGraphicsPage && !isGoldPage && <a className="fx-theme-toggle" href="/gold">Aukso skaičiuoklė</a>}
-        {(isGraphicsPage || isGoldPage) && <a className="fx-theme-toggle" href="/">Grįžti į skaičiuoklę</a>}
+        {!isGraphicsPage && <a className="fx-theme-toggle" href="/graphics">Graphics</a>}
+        {!isGraphicsPage && <a className="fx-theme-toggle" href="/gold">Aukso skaičiuoklė</a>}
+        {isGraphicsPage && <a className="fx-theme-toggle" href="/">Grįžti į skaičiuoklę</a>}
         <button
           type="button"
           className="fx-theme-toggle"
@@ -724,9 +690,7 @@ function App() {
         </button>
       </header>
 
-      {isGoldPage ? (
-        <GoldCalculator />
-      ) : isGraphicsPage ? (
+      {isGraphicsPage ? (
         <GraphicsPage />
       ) : <div className="fx-layout">
         <div className="fx-currency-column">
@@ -866,6 +830,12 @@ function App() {
       </div>}
     </main>
   )
+}
+
+function App() {
+  return window.location.pathname.replace(/\/$/, '') === '/gold'
+    ? <GoldCalculator />
+    : <CurrencyApp />
 }
 
 export default App
