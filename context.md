@@ -16,8 +16,8 @@ Lietuviška vieno puslapio React programa, kurioje yra fiat valiutų konverteris
 
 ## Failų struktūra
 
-- `src/App.jsx` – valiutų konverteris ir jame apibrėžtas `CryptoCalculator`.
-- `src/App.css`, `src/index.css` – komponentų ir bendrieji stiliai.
+- `src/App.jsx` – valiutų konverteris, jame apibrėžtas `CryptoCalculator` ir `/graphics` puslapio rodymas.
+- `src/App.css`, `src/index.css` – komponentų ir bendrieji stiliai, įskaitant „Graphics“ puslapio kortelę.
 - `src/main.jsx` – React įėjimo taškas, `StrictMode`.
 - `src/AGENTS.md` – `src/` katalogo darbo instrukcijos.
 - `public/`, `index.html`, `vite.config.js`, `eslint.config.js`, `package.json`.
@@ -58,6 +58,7 @@ Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pat
 
 ## Sprendimų žurnalas
 
+- 2026-10-06: Pridėtas „Graphics“ navigacijos mygtukas ir atskiras `/graphics` puslapis su grįžimo nuoroda.
 - 2026-10-06: Pridėti rezultatų kopijavimo mygtukai valiutų ir kriptovaliutų skaičiuoklėse.
 - 2026-10-06: Pridėtas tamsios ir šviesios temos perjungiklis; pasirinkimas išsaugomas `localStorage`.
 - 2026-10-06: Patikslintas projekto kontekstas pagal esamą kodą, įskaitant CoinGecko užklausą visoms kriptovaliutoms ir kripto kainų sąrašą. Pridėtos projekto lygmens instrukcijos `AGENTS.md`.

@@ -37,6 +37,33 @@
   color: #fff4fa;
   cursor: pointer;
   font: inherit;
+  text-decoration: none;
+}
+
+.graphics-page {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 28px;
+  background: linear-gradient(180deg, #4a2136 0%, #2d1824 100%);
+  border: 1px solid rgba(240, 138, 184, 0.28);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.graphics-page h2 {
+  margin: 0;
+  color: #fff4fa;
+  font-size: clamp(28px, 5vw, 40px);
+}
+
+:root[data-theme='light'] .graphics-page {
+  background: linear-gradient(180deg, #fff 0%, #fff8fb 100%);
+  border-color: #ead7e1;
+}
+
+:root[data-theme='light'] .graphics-page h2 {
+  color: #342633;
 }
 
 .fx-theme-toggle:hover {

@@ -320,6 +320,7 @@ function App() {
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [copyStatus, setCopyStatus] = useState('idle')
+  const isGraphicsPage = window.location.pathname.replace(/\/$/, '') === '/graphics'
 
   const loadRates = useCallback(async () => {
     setStatus('loading')
@@ -413,6 +414,8 @@ function App() {
             Konvertuokite tarp EUR, PLN, GBP ir USD pagal naujausius skelbiamus kursus.
           </p>
         </div>
+        {!isGraphicsPage && <a className="fx-theme-toggle" href="/graphics">Graphics</a>}
+        {isGraphicsPage && <a className="fx-theme-toggle" href="/">Grįžti į skaičiuoklę</a>}
         <button
           type="button"
           className="fx-theme-toggle"
@@ -424,7 +427,13 @@ function App() {
         </button>
       </header>
 
-      <div className="fx-layout">
+      {isGraphicsPage ? (
+        <section className="graphics-page" aria-labelledby="graphics-title">
+          <p className="fx-kicker">Vizualizacijos</p>
+          <h2 id="graphics-title">Graphics</h2>
+          <p className="fx-lead">Grafikų puslapis paruoštas.</p>
+        </section>
+      ) : <div className="fx-layout">
         <div className="fx-currency-column">
           <section className="fx-card" aria-live="polite">
             <div className="fx-field">
@@ -559,7 +568,7 @@ function App() {
         </div>
 
         <CryptoCalculator />
-      </div>
+      </div>}
     </main>
   )
 }
