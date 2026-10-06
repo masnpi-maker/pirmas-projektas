@@ -1,117 +1,61 @@
-# Projekto kontekstas: pirmas-projektas
+﻿# Projekto kontekstas: pirmas-projektas
 
-> Šis failas atnaujinamas kiekvieno pokalbio su Claude pabaigoje. Pradėdamas naują pokalbį, įklijuok šį failą į pirmą žinutę.
+Paskutinį kartą atnaujinta: 2026-10-06
 
-Paskutinį kartą atnaujinta: 2026-10-01
+## Apžvalga
 
-## 1. Apžvalga
+Lietuviška vieno puslapio React programa, kurioje yra fiat valiutų konverteris ir kriptovaliutų skaičiuoklė. Tamsi tema su bordo kortelėmis ir rožiniais akcentais. Paskirtis, hostingas ir Git/GitHub darbo eiga: reikia patikslinti.
 
-Lietuviška valiutų skaičiuoklė su kriptovaliutų skaičiuokle. Vieno puslapio React programa, tamsi tema su rožiniais akcentais.
+## Technologijos ir komandos
 
-- **Valiutų skaičiuoklė:** konvertuoja tarp EUR, PLN, GBP ir USD, yra valiutų sukeitimo mygtukas, rodomas kurso pavyzdys ir lentelė „Kursai nuo 1 EUR“ su atnaujinimo data.
-- **Kriptovaliutų skaičiuoklė:** pasirenkama kriptovaliuta, kiekis ir valiuta, rodoma bendra vertė ir 1 vieneto kaina.
-- **Paskirtis / auditorija:** _Reikia patikslinti (mokymasis, portfolio, realus naudojimas?)_
+- React 19, Vite 8, JavaScript/JSX, paprastas CSS.
+- ESLint 10 su React Hooks ir React Refresh taisyklėmis.
+- Runtime priklausomybės: `react`, `react-dom`; papildomų UI bibliotekų nėra.
+- `npm run dev` – vystymo serveris; `npm run build` – produkcinis build; `npm run preview` – build peržiūra; `npm run lint` – ESLint.
+- Vite konfigūracija naudoja tik React įskiepį; aliasų ir proxy nėra.
 
-## 2. Technologijos
+## Failų struktūra
 
-| Sritis | Pasirinkimas |
-|---|---|
-| Karkasas | React 19 (`react`, `react-dom` ^19.2.8) |
-| Bundler | Vite 8 su `@vitejs/plugin-react` |
-| Kalba | JavaScript (JSX), ne TypeScript |
-| Linteris | ESLint 10 + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` |
-| Stiliai | Paprastas CSS (be bibliotekų) |
-| Išorinės bibliotekos | Jokių papildomų (tik React) |
+- `src/App.jsx` – valiutų konverteris ir jame apibrėžtas `CryptoCalculator`.
+- `src/App.css`, `src/index.css` – komponentų ir bendrieji stiliai.
+- `src/main.jsx` – React įėjimo taškas, `StrictMode`.
+- `src/AGENTS.md` – `src/` katalogo darbo instrukcijos.
+- `public/`, `index.html`, `vite.config.js`, `eslint.config.js`, `package.json`.
 
-Vite konfigūracija minimali: tik React įskiepis, jokių aliasų ar proxy.
+## Veikimas ir API
 
-### Komandos
+### Valiutų konverteris
 
-- `npm run dev` — vystymo serveris
-- `npm run build` — produkcinė versija
-- `npm run preview` — build peržiūra
-- `npm run lint` — ESLint
+`App` saugo sumą, valiutų porą, EUR bazės kursus, atnaujinimo datą, užklausos būseną ir klaidą. Kursai vieną kartą užkraunami per `useEffect`/`useCallback` iš Frankfurter (`https://api.frankfurter.dev/v1/latest?base=EUR&symbols=PLN,GBP,USD`). Konvertavimas skaičiuojamas per EUR bazę; yra valiutų sukeitimo mygtukas ir EUR bazės kursų lentelė. Sumos kablelis pakeičiamas tašku, formatavimui naudojamas `Intl.NumberFormat('lt-LT')`.
 
-## 3. Failų struktūra
+Palaikomos valiutos: EUR, PLN, GBP, USD.
 
-```
-pirmas-projektas/
-├── public/            favicon.svg, icons.svg
-├── src/
-│   ├── assets/        hero.png, react.svg, vite.svg
-│   ├── App.jsx        pagrindinis komponentas + CryptoCalculator komponentas viduje (AKTYVUS)
-│   ├── App.css        valiutų (fx-*) ir, tikėtina, kripto (crypto-*) stiliai (tamsi tema)
-│   ├── index.css
-│   └── main.jsx       įėjimo taškas (StrictMode, importuoja index.css ir App.jsx)
-├── index.html
-├── eslint.config.js
-├── vite.config.js
-└── package.json, README.md, .gitignore
-```
+### Kriptovaliutų skaičiuoklė
 
-**Svarbu:** puslapyje rodomas kriptovaliutų blokas yra `CryptoCalculator` komponentas, apibrėžtas tiesiai `App.jsx`.
+`CryptoCalculator` saugo pasirinktos kriptovaliutos ID, valiutą, kiekį, visų kainų objektą, atnaujinimo laiką, būseną ir klaidą. CoinGecko `simple/price` užklausa prašo visų šešių palaikomų aktyvų kainų pasirinkta fiat valiuta ir `last_updated_at`. Užklausa kartojama pasikeitus valiutai; ankstesnė užklausa atšaukiama per `AbortController`. Klaidos būsenoje rodomas bandymo iš naujo mygtukas.
 
-## 4. Architektūra
+Palaikomi CoinGecko ID: bitcoin, ethereum, tether, binancecoin, solana, ripple (BTC, ETH, USDT, BNB, SOL, XRP). Valiutos: EUR, USD, GBP, PLN. Rodoma pasirinkto kiekio vertė, vieneto kaina ir visų šešių kriptovaliutų kainų sąrašas. Kiekio kablelis pakeičiamas tašku; pinigai formatuojami `Intl.NumberFormat('lt-LT')`.
 
-`main.jsx` atvaizduoja `<App />`. Plačiame ekrane valiutų konverteris ir kursų lentelė yra kairėje, o kriptovaliutų skaičiuoklė – dešinėje. Mažesniuose nei 900 px ekranuose blokai išdėstomi viename stulpelyje. `App` turi du funkcinius blokus:
+### API ribos
 
-1. **Valiutų konverteris** (pats `App`)
-   - Būsena: `amount`, `from`, `to`, `eurRates`, `updatedAt`, `status` (`loading` / `ready` / `error`), `error`.
-   - Kursai kraunami vieną kartą per `useEffect` + `useCallback` (`loadRates`).
-   - Konvertavimas per EUR bazę: `suma / kursas(from) * kursas(to)`. Kursų objektas turi `EUR: 1` ir kitas valiutas iš API.
-   - Skaičiavimai (`converted`, `pairRate`, `numericAmount`) per `useMemo`.
-   - Sumos įvestyje kablelis keičiamas tašku prieš konvertuojant (`replace(',', '.')`).
-   - Formatavimas per `Intl.NumberFormat('lt-LT')` (`formatMoney`, `formatRate`).
-2. **`CryptoCalculator`** (komponentas `App.jsx` faile)
-   - Būsena: `crypto`, `currency`, `amount`, `price`, `status`, `error`.
-   - Kaina kraunama kaskart pasikeitus kriptovaliutai arba valiutai (`loadCryptoPrice`, `useCallback` + `useEffect`); ankstesnė užklausa atšaukiama naudojant `AbortController`.
-   - Rezultatas = kiekis × kaina; kiekio kablelis keičiamas tašku; tikrinama, ar kaina yra skaičius.
-   - Rezultatas formatuojamas per `Intl.NumberFormat` su valiutos stiliumi.
-   - Klaidos atveju rodomas mygtukas „Bandyti dar kartą“.
+Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pateikiami pagal naujausią Frankfurter datą, o CoinGecko kainoms galioja paslaugos užklausų limitai. Tai nėra tiesioginė kainų transliacija.
 
-### Duomenys programoje
+## UI ir konvencijos
 
-- `CURRENCIES`: EUR, PLN, GBP, USD (kodas, lietuviškas pavadinimas, vėliavos emoji).
-- `CRYPTOCURRENCIES`: BTC, ETH, USDT, BNB, SOL, XRP (CoinGecko `id`, pavadinimas, simbolis).
-- Kriptovaliutų skaičiuoklės valiutų sąrašas (EUR, USD, GBP, PLN) įrašytas tiesiai JSX `<option>` elementuose, ne iš `CURRENCIES`.
+- UI tekstai lietuviški; tamsus puslapio fonas, bordo/plum kortelės, rožiniai akcentai, apvalinti kampai ir viršutinis glow.
+- `fx-*` klasės skirtos valiutų konverteriui, `crypto-*` – kriptovaliutų daliai.
+- Išdėstymas dviejų stulpelių, iki 900 px – vieno stulpelio; mažesniuose ekranuose laukų grupės taip pat persirikiuoja.
+- Rezultatams naudojamas `aria-live="polite"`, klaidoms `role="alert"`, laukams susieti `label`/`htmlFor`, ikoniniam mygtukui `aria-label`.
+- JavaScript stilius: funkciniai komponentai ir hooks, be kabliataškių, viengubos kabutės, 2 tarpų įtrauka.
 
-## 5. Išoriniai API
+## Žinomos ribos ir klausimai
 
-| Paskirtis | API | Užklausa |
-|---|---|---|
-| Valiutų kursai | Frankfurter (`api.frankfurter.dev/v1/latest`) | `base=EUR&symbols=PLN,GBP,USD`, grąžina ir datą |
-| Kriptovaliutų kainos | CoinGecko (`/api/v3/simple/price`) | `ids=<id>&vs_currencies=<valiuta>` |
+- CoinGecko nemokamas API gali riboti užklausas.
+- Fiat valiutų parinktys kripto dalyje įrašytos JSX atskirai nuo `CURRENCIES`.
+- Lokalė fiksuota į `lt-LT`; kalbos perjungimo nėra.
+- Produkto paskirtis, hostingas, Git/GitHub eiga ir planai: reikia patikslinti.
 
-- Abu be API raktų, kviečiami tiesiai iš naršyklės.
-- `.env` kintamųjų nėra.
-- Kursai atnaujinami puslapiui atsidarius ir pateikiami pagal Frankfurter API naujausią galimą datą; tai nėra tiesioginė (realaus laiko) kainų transliacija.
+## Sprendimų žurnalas
 
-## 6. UI ir stilius
-
-- **UI kalba:** lietuvių. Visi tekstai, `aria-label` ir klaidų žinutės lietuviškai.
-- **Išvaizda:** tamsus fonas, bordo / rožinių tonų kortelės su suapvalintais kampais, rožinis akcentas (pvz., sukeitimo mygtukas ir ₿ ikona), švytėjimo efektas viršuje (`fx-glow`).
-- **CSS klasių prefiksai:** `fx-*` valiutų daliai, `crypto-*` kriptovaliutų daliai.
-- **Prieinamumas:** `aria-live="polite"` rezultatų kortelėse, `role="alert"` klaidoms, `label` susieti su laukais per `htmlFor`.
-- **Konvencijos:** funkciniai komponentai su hook'ais, kodas be kabliataškių, viengubos kabutės, 2 tarpų atitraukimas (`App.jsx`).
-
-## 7. Diegimas ir versijavimas
-
-- Hostingas: _Reikia patikslinti_
-- Git / GitHub: _Reikia patikslinti_ (`.gitignore` yra)
-
-## 8. Žinomos problemos ir idėjos
-
-Žinomos ribos:
-- CoinGecko nemokamas API turi užklausų limitus, galimos klaidos esant dideliam naudojimui.
-- Valiutų sąrašas dubliuojamas (`CURRENCIES` ir `<option>` kriptovaliutų bloke).
-- Užkoduota `lt-LT` lokalė, kalbos perjungimo nėra.
-
-Planai ir idėjos: _Reikia patikslinti_
-
-## 9. Sprendimų žurnalas
-
-- 2026-10-01: Atšaukiamos ankstesnės kriptovaliutų kainų užklausos, patikslinta kursų antraštė, pataisyta kriptovaliutos rašyba, atnaujintas glow akcentas ir pašalinta nenaudojama kopija. Atnaujintos projekto instrukcijos.
-- 2026-10-01: Plačiame ekrane valiutų konverteris ir kursų lentelė išdėstomi kairėje, kriptovaliutų skaičiuoklė dešinėje; siaurame ekrane naudojamas vienas stulpelis.
-
-- 2026-10-01: Nuspręsta palaikyti šį `context.md` ir atnaujinti jį kiekvieno pokalbio pabaigoje. Sukurta pirma versija iš `App.jsx`, `main.jsx`, `package.json`, `vite.config.js` ir failų struktūros.
-- 2026-10-01: Peržiūrėti `CryptoCalculator.jsx` ir `CryptoCalculator.css`: nustatyta, kad tai nebenaudojama senesnė kopija (šviesi tema, neimportuojama). Atnaujinti skyriai 3, 4 ir 8.
+- 2026-10-06: Patikslintas projekto kontekstas pagal esamą kodą, įskaitant CoinGecko užklausą visoms kriptovaliutoms ir kripto kainų sąrašą. Pridėtos projekto lygmens instrukcijos `AGENTS.md`.
+- 2026-10-01: Atnaujintas valiutų ir kriptovaliutų išdėstymas bei projekto instrukcijos.
