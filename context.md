@@ -16,8 +16,8 @@ Lietuviška vieno puslapio React programa, kurioje yra fiat valiutų konverteris
 
 ## Failų struktūra
 
-- `src/App.jsx` – valiutų konverteris, `CryptoCalculator` ir `/graphics` istorinių kursų puslapis.
-- `src/App.css`, `src/index.css` – komponentų ir bendrieji stiliai, įskaitant reaguojantį kursų grafiką.
+- `src/App.jsx` – valiutų konverteris, `CryptoCalculator`, `/graphics` istorinių kursų ir `/gold` aukso skaičiuoklės puslapiai.
+- `src/App.css`, `src/index.css` – komponentų ir bendrieji stiliai, įskaitant kursų grafiką ir aukso skaičiuoklę.
 - `src/main.jsx` – React įėjimo taškas, `StrictMode`.
 - `src/AGENTS.md` – `src/` katalogo darbo instrukcijos.
 - `public/`, `index.html`, `vite.config.js`, `eslint.config.js`, `package.json`.
@@ -39,6 +39,10 @@ Palaikomos valiutos: EUR, PLN, GBP, USD.
 `CryptoCalculator` saugo pasirinktos kriptovaliutos ID, valiutą, kiekį, visų kainų ir 24 val. pokyčių objektus, atnaujinimo laiką, būseną ir klaidą. CoinGecko `simple/price` užklausa prašo visų šešių palaikomų aktyvų kainų pasirinkta fiat valiuta, `last_updated_at` ir `include_24hr_change=true`. Kainų sąraše rodomas 24 val. pokytis procentais; kai API jo nepateikia, rodomas brūkšnys. Užklausa kartojama pasikeitus valiutai; ankstesnė užklausa atšaukiama per `AbortController`. Klaidos būsenoje rodomas bandymo iš naujo mygtukas.
 
 Palaikomi CoinGecko ID: bitcoin, ethereum, tether, binancecoin, solana, ripple (BTC, ETH, USDT, BNB, SOL, XRP). Valiutos: EUR, USD, GBP, PLN. Rodoma pasirinkto kiekio vertė, vieneto kaina ir visų šešių kriptovaliutų kainų sąrašas. Kiekio kablelis pakeičiamas tašku; pinigai formatuojami `Intl.NumberFormat('lt-LT')`.
+
+### Aukso skaičiuoklė
+
+Pagrindiniame puslapyje esantis „Aukso skaičiuoklė“ mygtukas atidaro `/gold`. Įvedus svorį gramais ir vartotojo nurodytą kainą už gramą EUR, apskaičiuojama bendra vertė. Aukso rinkos kaina automatiškai negaunama.
 
 ### API ribos
 
@@ -62,6 +66,7 @@ Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pat
 
 ## Sprendimų žurnalas
 
+- 2026-10-06: Pagrindiniame puslapyje pridėtas „Aukso skaičiuoklė“ mygtukas ir atskiras rankiniu būdu įvedamos aukso kainos skaičiuoklės puslapis.
 - 2026-10-06: Pridėtas „Graphics“ navigacijos mygtukas ir atskiras `/graphics` puslapis su grįžimo nuoroda.
 - 2026-10-06: „Graphics“ puslapyje pridėtas istorinių EUR kursų grafikas, 7D/30D/90D/1Y laikotarpiai ir EUR/USD, EUR/PLN, EUR/GBP poros.
 - 2026-10-06: „Graphics“ puslapyje pridėtas perjungimas į kriptovaliutų istoriją su šešiais palaikomais aktyvais ir EUR/USD/GBP/PLN kainos valiutomis.
