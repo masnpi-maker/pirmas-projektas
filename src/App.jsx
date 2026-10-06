@@ -28,6 +28,14 @@ function formatRate(value) {
   }).format(value)
 }
 
+function formatPercent(value) {
+  if (!Number.isFinite(value)) return '—'
+  return `${new Intl.NumberFormat('lt-LT', {
+    maximumFractionDigits: 2,
+    signDisplay: 'always',
+  }).format(value)}%`
+}
+
 const CRYPTOCURRENCIES = [
   { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
   { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
@@ -55,6 +63,7 @@ function CryptoCalculator() {
   const [currency, setCurrency] = useState('eur')
   const [amount, setAmount] = useState('1')
   const [prices, setPrices] = useState(null)
+  const [priceChanges, setPriceChanges] = useState(null)
   const [updatedAt, setUpdatedAt] = useState(null)
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
@@ -66,10 +75,11 @@ function CryptoCalculator() {
     requestController.current = controller
     setStatus('loading')
     setError('')
+    setPriceChanges(null)
 
     try {
       const response = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${CRYPTO_IDS}&vs_currencies=${currency}&include_last_updated_at=true`,
+        `https://api.coingecko.com/api/v3/simple/price?ids=${CRYPTO_IDS}&vs_currencies=${currency}&include_last_updated_at=true&include_24hr_change=true`,
         { signal: controller.signal },
       )
 
@@ -79,6 +89,7 @@ function CryptoCalculator() {
 
       const data = await response.json()
       const nextPrices = {}
+      const nextPriceChanges = {}
       let latestUpdate = 0
 
       for (const item of CRYPTOCURRENCIES) {
@@ -87,6 +98,8 @@ function CryptoCalculator() {
           throw new Error('Kainos duomenų nėra.')
         }
         nextPrices[item.id] = currentPrice
+        const change = data?.[item.id]?.[`${currency}_24h_change`]
+        nextPriceChanges[item.id] = Number.isFinite(change) ? change : null
         const stamp = data?.[item.id]?.last_updated_at
         if (Number.isFinite(stamp) && stamp > latestUpdate) {
           latestUpdate = stamp
@@ -95,11 +108,13 @@ function CryptoCalculator() {
 
       if (controller.signal.aborted) return
       setPrices(nextPrices)
+      setPriceChanges(nextPriceChanges)
       setUpdatedAt(latestUpdate || Date.now() / 1000)
       setStatus('ready')
     } catch {
       if (controller.signal.aborted) return
       setPrices(null)
+      setPriceChanges(null)
       setUpdatedAt(null)
       setStatus('error')
       setError(
@@ -234,9 +249,14 @@ function CryptoCalculator() {
             <span>
               {item.symbol} — {item.name}
             </span>
-            <strong>
-              {prices ? formatCryptoMoney(prices[item.id], fiatCode) : '—'}
-            </strong>
+            <div className="fx-rate-values">
+              <strong>
+                {prices ? formatCryptoMoney(prices[item.id], fiatCode) : '—'}
+              </strong>
+              <span className="fx-rate-change">
+                {formatPercent(priceChanges?.[item.id])}
+              </span>
+            </div>
           </li>
         ))}
       </ul>
@@ -250,6 +270,7 @@ function App() {
   const [from, setFrom] = useState('EUR')
   const [to, setTo] = useState('PLN')
   const [eurRates, setEurRates] = useState(null)
+  const [previousEurRates, setPreviousEurRates] = useState(null)
   const [updatedAt, setUpdatedAt] = useState(null)
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
@@ -265,6 +286,26 @@ function App() {
       const data = await response.json()
       setEurRates({ EUR: 1, ...data.rates })
       setUpdatedAt(data.date)
+      setPreviousEurRates(null)
+      try {
+        const latestDate = new Date(`${data.date}T00:00:00Z`)
+        const rangeStart = new Date(latestDate)
+        rangeStart.setUTCDate(rangeStart.getUTCDate() - 7)
+        const fromDate = rangeStart.toISOString().slice(0, 10)
+        const historyResponse = await fetch(
+          `https://api.frankfurter.dev/v1/${fromDate}..${data.date}?base=EUR&symbols=PLN,GBP,USD`,
+        )
+        if (historyResponse.ok) {
+          const history = await historyResponse.json()
+          const previousDates = Object.keys(history.rates ?? {})
+            .filter((date) => date < data.date)
+            .sort()
+          const previousDate = previousDates[previousDates.length - 1]
+          if (previousDate) setPreviousEurRates(history.rates[previousDate])
+        }
+      } catch {
+        setPreviousEurRates(null)
+      }
       setStatus('ready')
     } catch {
       setStatus('error')
@@ -409,9 +450,20 @@ function App() {
                   <span>
                     {currency.flag} {currency.code}
                   </span>
-                  <strong>
-                    {eurRates ? formatRate(eurRates[currency.code]) : '—'}
-                  </strong>
+                  <div className="fx-rate-values">
+                    <strong>
+                      {eurRates ? formatRate(eurRates[currency.code]) : '—'}
+                    </strong>
+                    <span className="fx-rate-change">
+                      {previousEurRates && eurRates
+                        ? formatPercent(
+                            ((eurRates[currency.code] - previousEurRates[currency.code]) /
+                              previousEurRates[currency.code]) *
+                              100,
+                          )
+                        : '—'}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>

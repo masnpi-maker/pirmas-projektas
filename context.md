@@ -26,13 +26,13 @@ Lietuviška vieno puslapio React programa, kurioje yra fiat valiutų konverteris
 
 ### Valiutų konverteris
 
-`App` saugo sumą, valiutų porą, EUR bazės kursus, atnaujinimo datą, užklausos būseną ir klaidą. Kursai vieną kartą užkraunami per `useEffect`/`useCallback` iš Frankfurter (`https://api.frankfurter.dev/v1/latest?base=EUR&symbols=PLN,GBP,USD`). Konvertavimas skaičiuojamas per EUR bazę; yra valiutų sukeitimo mygtukas ir EUR bazės kursų lentelė. Sumos kablelis pakeičiamas tašku, formatavimui naudojamas `Intl.NumberFormat('lt-LT')`.
+`App` saugo sumą, valiutų porą, EUR bazės kursus, atnaujinimo datą, užklausos būseną ir klaidą. Kursai vieną kartą užkraunami per `useEffect`/`useCallback` iš Frankfurter (`https://api.frankfurter.dev/v1/latest?base=EUR&symbols=PLN,GBP,USD`). Papildoma laiko eilutės užklausa randa ankstesnį paskelbtą kursą (iki 7 kalendorinių dienų atgal); EUR bazės kursų lentelėje rodomas procentinis pokytis nuo to kurso. Jei istorinių duomenų gauti nepavyksta, pokytis rodomas kaip brūkšnys, o dabartiniai kursai veikia toliau. Konvertavimas skaičiuojamas per EUR bazę; yra valiutų sukeitimo mygtukas. Sumos kablelis pakeičiamas tašku, formatavimui naudojamas `Intl.NumberFormat('lt-LT')`.
 
 Palaikomos valiutos: EUR, PLN, GBP, USD.
 
 ### Kriptovaliutų skaičiuoklė
 
-`CryptoCalculator` saugo pasirinktos kriptovaliutos ID, valiutą, kiekį, visų kainų objektą, atnaujinimo laiką, būseną ir klaidą. CoinGecko `simple/price` užklausa prašo visų šešių palaikomų aktyvų kainų pasirinkta fiat valiuta ir `last_updated_at`. Užklausa kartojama pasikeitus valiutai; ankstesnė užklausa atšaukiama per `AbortController`. Klaidos būsenoje rodomas bandymo iš naujo mygtukas.
+`CryptoCalculator` saugo pasirinktos kriptovaliutos ID, valiutą, kiekį, visų kainų ir 24 val. pokyčių objektus, atnaujinimo laiką, būseną ir klaidą. CoinGecko `simple/price` užklausa prašo visų šešių palaikomų aktyvų kainų pasirinkta fiat valiuta, `last_updated_at` ir `include_24hr_change=true`. Kainų sąraše rodomas 24 val. pokytis procentais; kai API jo nepateikia, rodomas brūkšnys. Užklausa kartojama pasikeitus valiutai; ankstesnė užklausa atšaukiama per `AbortController`. Klaidos būsenoje rodomas bandymo iš naujo mygtukas.
 
 Palaikomi CoinGecko ID: bitcoin, ethereum, tether, binancecoin, solana, ripple (BTC, ETH, USDT, BNB, SOL, XRP). Valiutos: EUR, USD, GBP, PLN. Rodoma pasirinkto kiekio vertė, vieneto kaina ir visų šešių kriptovaliutų kainų sąrašas. Kiekio kablelis pakeičiamas tašku; pinigai formatuojami `Intl.NumberFormat('lt-LT')`.
 
@@ -50,7 +50,7 @@ Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pat
 
 ## Žinomos ribos ir klausimai
 
-- CoinGecko nemokamas API gali riboti užklausas.
+- CoinGecko nemokamas API gali riboti užklausas; jo 24 val. pokyčio laukas gali būti tuščias, jei duomenys pasenę.
 - Fiat valiutų parinktys kripto dalyje įrašytos JSX atskirai nuo `CURRENCIES`.
 - Lokalė fiksuota į `lt-LT`; kalbos perjungimo nėra.
 - Produkto paskirtis, hostingas, Git/GitHub eiga ir planai: reikia patikslinti.
@@ -58,4 +58,5 @@ Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pat
 ## Sprendimų žurnalas
 
 - 2026-10-06: Patikslintas projekto kontekstas pagal esamą kodą, įskaitant CoinGecko užklausą visoms kriptovaliutoms ir kripto kainų sąrašą. Pridėtos projekto lygmens instrukcijos `AGENTS.md`.
+- 2026-10-06: Valiutų ir kriptovaliutų kursų sąrašuose pridėtas pokytis procentais: fiat valiutoms lyginama su ankstesne paskelbta darbo diena, kriptovaliutoms naudojamas CoinGecko 24 val. pokytis.
 - 2026-10-01: Atnaujintas valiutų ir kriptovaliutų išdėstymas bei projekto instrukcijos.

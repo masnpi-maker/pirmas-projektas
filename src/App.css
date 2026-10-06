@@ -210,9 +210,22 @@
 .fx-rates li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 14px 16px;
   color: #fff4fa;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.fx-rate-values {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  text-align: right;
+}
+
+.fx-rate-change {
+  color: #d9a9bf;
+  font-size: 12px;
 }
 
 @media (max-width: 900px) {
