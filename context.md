@@ -30,9 +30,9 @@ Lietuviška vieno puslapio React programa, kurioje yra fiat valiutų konverteris
 
 Palaikomos valiutos: EUR, PLN, GBP, USD.
 
-### Istorinių kursų grafikas
+### Istorinių kursų ir kriptovaliutų grafikai
 
-`/graphics` puslapyje galima pasirinkti 7D, 30D, 90D arba 1Y laikotarpį ir EUR/USD, EUR/PLN arba EUR/GBP porą. Pasirinkus kitą reikšmę, komponentas užklausia Frankfurter v1 laiko eilutės API su pasirinkta pradžios/pabaigos data, bazine valiuta ir simboliu. Atsakymo duomenys rodomi reaguojančiame SVG linijiniame grafike su kursų skale ir datomis. Užklausa atšaukiama pakeitus pasirinkimą arba palikus puslapį; klaidos atveju rodomas pranešimas.
+`/graphics` puslapyje galima perjungti fiat valiutų ir kriptovaliutų grafikus. Fiat grafikui pasirenkamas 7D, 30D, 90D arba 1Y laikotarpis ir EUR/USD, EUR/PLN arba EUR/GBP pora; duomenys gaunami Frankfurter v1 laiko eilutės API. Kripto grafikui pasirenkamas tas pats laikotarpis, vienas iš palaikomų aktyvų (BTC, ETH, USDT, BNB, SOL, XRP) ir EUR, USD, GBP arba PLN kainos valiuta; istorija gaunama CoinGecko `coins/{id}/market_chart` endpointu. Abu grafikai yra SVG linijiniai, rodo datas ir kainos/kurso skalę. Pasikeitus pasirinkimui ankstesnė užklausa atšaukiama ir grafikas atnaujinamas; klaidos būsenoje rodomas pranešimas.
 
 ### Kriptovaliutų skaičiuoklė
 
@@ -64,6 +64,7 @@ Abu API kviečiami tiesiai iš naršyklės, be raktų ir `.env`. Fiat kursai pat
 
 - 2026-10-06: Pridėtas „Graphics“ navigacijos mygtukas ir atskiras `/graphics` puslapis su grįžimo nuoroda.
 - 2026-10-06: „Graphics“ puslapyje pridėtas istorinių EUR kursų grafikas, 7D/30D/90D/1Y laikotarpiai ir EUR/USD, EUR/PLN, EUR/GBP poros.
+- 2026-10-06: „Graphics“ puslapyje pridėtas perjungimas į kriptovaliutų istoriją su šešiais palaikomais aktyvais ir EUR/USD/GBP/PLN kainos valiutomis.
 - 2026-10-06: Pridėti rezultatų kopijavimo mygtukai valiutų ir kriptovaliutų skaičiuoklėse.
 - 2026-10-06: Pridėtas tamsios ir šviesios temos perjungiklis; pasirinkimas išsaugomas `localStorage`.
 - 2026-10-06: Patikslintas projekto kontekstas pagal esamą kodą, įskaitant CoinGecko užklausą visoms kriptovaliutoms ir kripto kainų sąrašą. Pridėtos projekto lygmens instrukcijos `AGENTS.md`.

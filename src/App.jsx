@@ -317,52 +317,72 @@ const GRAPH_PAIRS = [
 ]
 
 function GraphicsPage() {
+  const [chartType, setChartType] = useState('fiat')
   const [period, setPeriod] = useState(30)
   const [pair, setPair] = useState(GRAPH_PAIRS[0])
+  const [crypto, setCrypto] = useState('bitcoin')
+  const [cryptoCurrency, setCryptoCurrency] = useState('eur')
   const [rates, setRates] = useState([])
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
 
   useEffect(() => {
     const controller = new AbortController()
-    const endDate = new Date()
-    const startDate = new Date(endDate)
-    startDate.setUTCDate(startDate.getUTCDate() - period)
-    const formatDate = (date) => date.toISOString().slice(0, 10)
-
     async function loadHistory() {
       setStatus('loading')
       setError('')
 
       try {
-        const response = await fetch(
-          `https://api.frankfurter.dev/v1/${formatDate(startDate)}..${formatDate(endDate)}?base=${pair.base}&symbols=${pair.quote}`,
-          { signal: controller.signal },
-        )
+        let points
 
-        if (!response.ok) throw new Error('Nepavyko gauti istorinių kursų.')
+        if (chartType === 'fiat') {
+          const endDate = new Date()
+          const startDate = new Date(endDate)
+          startDate.setUTCDate(startDate.getUTCDate() - period)
+          const formatDate = (date) => date.toISOString().slice(0, 10)
+          const response = await fetch(
+            `https://api.frankfurter.dev/v1/${formatDate(startDate)}..${formatDate(endDate)}?base=${pair.base}&symbols=${pair.quote}`,
+            { signal: controller.signal },
+          )
+          if (!response.ok) throw new Error('Nepavyko gauti istorinių kursų.')
+          const data = await response.json()
+          points = Object.entries(data.rates ?? {}).map(([date, values]) => ({
+            date,
+            timestamp: Date.parse(`${date}T00:00:00Z`),
+            rate: values[pair.quote],
+          }))
+        } else {
+          const response = await fetch(
+            `https://api.coingecko.com/api/v3/coins/${crypto}/market_chart?vs_currency=${cryptoCurrency}&days=${period}`,
+            { signal: controller.signal },
+          )
+          if (!response.ok) throw new Error('Nepavyko gauti kriptovaliutos istorinių kainų.')
+          const data = await response.json()
+          points = (data.prices ?? []).map(([timestamp, rate]) => ({
+            timestamp,
+            date: new Date(timestamp).toISOString().slice(0, 10),
+            rate,
+          }))
+        }
 
-        const data = await response.json()
-        const points = Object.entries(data.rates ?? {})
-          .map(([date, values]) => ({ date, rate: values[pair.quote] }))
-          .filter((point) => Number.isFinite(point.rate))
-          .sort((left, right) => left.date.localeCompare(right.date))
-
-        if (!points.length) throw new Error('Pasirinktu laikotarpiu kursų nėra.')
+        points = points
+          .filter((point) => Number.isFinite(point.rate) && Number.isFinite(point.timestamp))
+          .sort((left, right) => left.timestamp - right.timestamp)
+        if (!points.length) throw new Error('Pasirinktu laikotarpiu duomenų nėra.')
         if (controller.signal.aborted) return
         setRates(points)
         setStatus('ready')
       } catch {
         if (controller.signal.aborted) return
         setRates([])
-        setError('Istorinių kursų gauti nepavyko. Patikrinkite interneto ryšį ir bandykite dar kartą.')
+        setError('Istorinių duomenų gauti nepavyko. Patikrinkite interneto ryšį ir bandykite dar kartą.')
         setStatus('error')
       }
     }
 
     loadHistory()
     return () => controller.abort()
-  }, [pair, period])
+  }, [chartType, crypto, cryptoCurrency, pair, period])
 
   const chart = useMemo(() => {
     if (!rates.length) return null
@@ -395,6 +415,28 @@ function GraphicsPage() {
       </div>
 
       <div className="graphics-controls">
+        <div className="graphics-control-group" role="group" aria-label="Grafiko tipas">
+          <span className="graphics-control-label">Duomenys</span>
+          <div className="graphics-options">
+            <button
+              type="button"
+              className={`graphics-option${chartType === 'fiat' ? ' is-selected' : ''}`}
+              aria-pressed={chartType === 'fiat'}
+              onClick={() => setChartType('fiat')}
+            >
+              Valiutų kursai
+            </button>
+            <button
+              type="button"
+              className={`graphics-option${chartType === 'crypto' ? ' is-selected' : ''}`}
+              aria-pressed={chartType === 'crypto'}
+              onClick={() => setChartType('crypto')}
+            >
+              Kriptovaliutos
+            </button>
+          </div>
+        </div>
+
         <div className="graphics-control-group" role="group" aria-label="Pasirinkite laikotarpį">
           <span className="graphics-control-label">Laikotarpis</span>
           <div className="graphics-options">
@@ -412,37 +454,71 @@ function GraphicsPage() {
           </div>
         </div>
 
-        <div className="graphics-control-group" role="group" aria-label="Pasirinkite valiutų porą">
-          <span className="graphics-control-label">Valiutų pora</span>
-          <div className="graphics-options">
-            {GRAPH_PAIRS.map((option) => {
-              const selected = pair.base === option.base && pair.quote === option.quote
-              return (
-                <button
-                  key={option.quote}
-                  type="button"
-                  className={`graphics-option${selected ? ' is-selected' : ''}`}
-                  aria-pressed={selected}
-                  onClick={() => setPair(option)}
-                >
-                  {option.base} / {option.quote}
-                </button>
-              )
-            })}
+        {chartType === 'fiat' ? (
+          <div className="graphics-control-group" role="group" aria-label="Pasirinkite valiutų porą">
+            <span className="graphics-control-label">Valiutų pora</span>
+            <div className="graphics-options">
+              {GRAPH_PAIRS.map((option) => {
+                const selected = pair.base === option.base && pair.quote === option.quote
+                return (
+                  <button
+                    key={option.quote}
+                    type="button"
+                    className={`graphics-option${selected ? ' is-selected' : ''}`}
+                    aria-pressed={selected}
+                    onClick={() => setPair(option)}
+                  >
+                    {option.base} / {option.quote}
+                  </button>
+                )
+              })}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="graphics-crypto-controls">
+            <div className="graphics-control-group">
+              <label className="graphics-control-label" htmlFor="graphics-crypto">Kriptovaliuta</label>
+              <select id="graphics-crypto" value={crypto} onChange={(event) => setCrypto(event.target.value)}>
+                {CRYPTOCURRENCIES.map((item) => (
+                  <option key={item.id} value={item.id}>{item.symbol} — {item.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="graphics-control-group">
+              <label className="graphics-control-label" htmlFor="graphics-currency">Kainos valiuta</label>
+              <select id="graphics-currency" value={cryptoCurrency} onChange={(event) => setCryptoCurrency(event.target.value)}>
+                <option value="eur">EUR — Euras</option>
+                <option value="usd">USD — JAV doleris</option>
+                <option value="gbp">GBP — Svaras sterlingų</option>
+                <option value="pln">PLN — Lenkijos zlotas</option>
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="graphics-chart-card" aria-live="polite">
         <div className="graphics-chart-heading">
           <div>
-            <p className="graphics-chart-label">{pair.base} / {pair.quote}</p>
-            <strong>{rates.length ? formatRate(rates[rates.length - 1].rate) : '—'} {pair.quote}</strong>
+            <p className="graphics-chart-label">
+              {chartType === 'fiat' ? `${pair.base} / ${pair.quote}` : CRYPTOCURRENCIES.find((item) => item.id === crypto)?.symbol}
+            </p>
+            <strong>
+              {rates.length
+                ? chartType === 'fiat'
+                  ? `${formatRate(rates[rates.length - 1].rate)} ${pair.quote}`
+                  : formatCryptoMoney(rates[rates.length - 1].rate, cryptoCurrency.toUpperCase())
+                : '—'}
+            </strong>
           </div>
           <span>{status === 'ready' ? `${rates.length} duomenų taškų` : ''}</span>
         </div>
 
-        {status === 'loading' && <p className="graphics-message">Kraunami istoriniai kursai…</p>}
+        {status === 'loading' && (
+          <p className="graphics-message">
+            {chartType === 'fiat' ? 'Kraunami istoriniai kursai…' : 'Kraunamos istorinės kainos…'}
+          </p>
+        )}
         {status === 'error' && <p className="graphics-message graphics-error" role="alert">{error}</p>}
         {status === 'ready' && chart && (
           <div className="graphics-chart-wrap">
@@ -450,7 +526,9 @@ function GraphicsPage() {
               className="graphics-chart"
               viewBox={`0 0 ${chart.width} ${chart.height}`}
               role="img"
-              aria-label={`${pair.base} ir ${pair.quote} valiutų kurso grafikas`}
+              aria-label={chartType === 'fiat'
+                ? `${pair.base} ir ${pair.quote} valiutų kurso grafikas`
+                : `${crypto} kriptovaliutos kainos grafikas ${cryptoCurrency.toUpperCase()} valiuta`}
             >
               {[0, 0.5, 1].map((fraction) => {
                 const y = chart.padding.top + fraction * (chart.height - chart.padding.top - chart.padding.bottom)
@@ -458,7 +536,9 @@ function GraphicsPage() {
                 return (
                   <g key={fraction}>
                     <line x1={chart.padding.left} x2={chart.width - chart.padding.right} y1={y} y2={y} className="graphics-gridline" />
-                    <text x={chart.padding.left - 10} y={y + 4} textAnchor="end" className="graphics-axis-label">{formatRate(value)}</text>
+                    <text x={chart.padding.left - 10} y={y + 4} textAnchor="end" className="graphics-axis-label">
+                      {chartType === 'fiat' ? formatRate(value) : formatCryptoMoney(value, cryptoCurrency.toUpperCase())}
+                    </text>
                   </g>
                 )
               })}
@@ -467,10 +547,10 @@ function GraphicsPage() {
                 className="graphics-line"
               />
               <text x={chart.padding.left} y={chart.height - 8} className="graphics-axis-label">
-                {new Date(`${rates[0].date}T12:00:00`).toLocaleDateString('lt-LT')}
+                {new Date(rates[0].timestamp).toLocaleDateString('lt-LT')}
               </text>
               <text x={chart.width - chart.padding.right} y={chart.height - 8} textAnchor="end" className="graphics-axis-label">
-                {new Date(`${rates[rates.length - 1].date}T12:00:00`).toLocaleDateString('lt-LT')}
+                {new Date(rates[rates.length - 1].timestamp).toLocaleDateString('lt-LT')}
               </text>
             </svg>
           </div>

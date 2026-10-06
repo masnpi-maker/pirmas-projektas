@@ -65,8 +65,30 @@
 
 .graphics-controls {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
+}
+
+.graphics-crypto-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.graphics-crypto-controls select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(240, 138, 184, 0.28);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #321b28;
+  color: #fff4fa;
+  font: inherit;
+}
+
+.graphics-crypto-controls select:focus-visible {
+  outline: 2px solid #f08ab8;
+  outline-offset: 2px;
 }
 
 .graphics-control-group {
@@ -148,7 +170,6 @@
 .graphics-chart {
   display: block;
   width: 100%;
-  min-width: 520px;
   overflow: visible;
 }
 
@@ -206,6 +227,12 @@
 :root[data-theme='light'] .graphics-option.is-selected {
   background: #f08ab8;
   color: #3a1828;
+}
+
+:root[data-theme='light'] .graphics-crypto-controls select {
+  background: #fff;
+  border-color: #dfced8;
+  color: #342633;
 }
 
 :root[data-theme='light'] .graphics-gridline {
@@ -478,6 +505,10 @@
   }
 
   .graphics-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .graphics-crypto-controls {
     grid-template-columns: 1fr;
   }
 
